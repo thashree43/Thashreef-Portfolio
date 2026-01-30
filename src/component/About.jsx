@@ -43,7 +43,7 @@ const About = () => {
         <div className="about-content">
           <div className="about-text">
             <div className="about-intro">
-              <h3>Frontend-focused Full Stack Developer</h3>
+              <h3>Full Stack Developer (Frontend & Backend)</h3>
               <p>
                 With <strong>2 years of experience</strong> building responsive, scalable, and 
                 high-performance web applications using modern technologies.
