@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { 
   FaHeart, 
@@ -8,11 +8,20 @@ import {
   FaArrowUp,
   FaCode,
   FaRocket,
-  FaCopyright
+  FaCopyright,
+  FaHome,
+  FaUser,
+  FaTools,
+  FaProjectDiagram,
+  FaAddressBook
 } from 'react-icons/fa';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const [isMobile, setIsMobile] = useState(false);
+  const [particleCount, setParticleCount] = useState(20);
+  const [isTablet, setIsTablet] = useState(false);
+  
   const footerRef = useRef(null);
   const logoRef = useRef(null);
   const linksRef = useRef([]);
@@ -21,10 +30,30 @@ const Footer = () => {
   const backToTopRef = useRef(null);
   const heartbeatRef = useRef(null);
 
+  // Check screen size and adjust settings
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      const mobile = width < 768;
+      const tablet = width >= 768 && width < 1024;
+      
+      setIsMobile(mobile);
+      setIsTablet(tablet);
+      setParticleCount(mobile ? 8 : tablet ? 12 : 20);
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
   // Create particle effect
   useEffect(() => {
     const particles = [];
-    for (let i = 0; i < 20; i++) {
+    const count = isMobile ? 8 : isTablet ? 12 : 20;
+    
+    for (let i = 0; i < count; i++) {
       particles.push({
         id: i,
         size: Math.random() * 4 + 1,
@@ -35,12 +64,14 @@ const Footer = () => {
       });
     }
     particlesRef.current = particles;
-  }, []);
+  }, [isMobile, isTablet]);
 
-  // GSAP Animations
+  // GSAP Animations - Disable some on mobile for performance
   useEffect(() => {
+    if (isMobile) return;
+
     const ctx = gsap.context(() => {
-      // Logo animation with typing effect
+      // Logo animation
       gsap.from(logoRef.current, {
         scrollTrigger: {
           trigger: footerRef.current,
@@ -103,39 +134,41 @@ const Footer = () => {
       });
 
       // Continuous animations
-      gsap.to('.social-icon', {
-        y: -5,
-        duration: 2,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-        stagger: 0.2
-      });
+      if (!isMobile) {
+        gsap.to('.social-icon', {
+          y: -5,
+          duration: 2,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+          stagger: 0.2
+        });
 
-      // Heartbeat animation
-      gsap.to(heartbeatRef.current, {
-        scale: 1.2,
-        duration: 0.8,
-        repeat: -1,
-        yoyo: true,
-        ease: "power2.inOut"
-      });
+        // Heartbeat animation
+        gsap.to(heartbeatRef.current, {
+          scale: 1.2,
+          duration: 0.8,
+          repeat: -1,
+          yoyo: true,
+          ease: "power2.inOut"
+        });
 
-      // Floating code icons
-      gsap.to('.floating-code', {
-        y: -10,
-        rotation: 360,
-        duration: 4,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-        stagger: 0.5
-      });
+        // Floating code icons
+        gsap.to('.floating-code', {
+          y: -10,
+          rotation: 360,
+          duration: 4,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+          stagger: 0.5
+        });
+      }
 
     }, footerRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [isMobile]);
 
   const scrollToTop = () => {
     window.scrollTo({
@@ -145,11 +178,11 @@ const Footer = () => {
   };
 
   const footerLinks = [
-    { name: 'Home', href: '#' },
-    { name: 'About', href: '#about' },
-    { name: 'Skills', href: '#skills' },
-    { name: 'Projects', href: '#projects' },
-    { name: 'Contact', href: '#contact' }
+    { name: 'Home', href: '#', icon: <FaHome /> },
+    { name: 'About', href: '#about', icon: <FaUser /> },
+    { name: 'Skills', href: '#skills', icon: <FaTools /> },
+    { name: 'Projects', href: '#projects', icon: <FaProjectDiagram /> },
+    { name: 'Contact', href: '#contact', icon: <FaAddressBook /> }
   ];
 
   const socialLinks = [
@@ -173,6 +206,17 @@ const Footer = () => {
     }
   ];
 
+  // Floating code positions based on screen size
+  const floatingCodePositions = isMobile ? [] : isTablet ? [
+    { left: '10%', top: '20%' },
+    { left: '85%', top: '30%' }
+  ] : [
+    { left: '10%', top: '20%' },
+    { left: '85%', top: '30%' },
+    { left: '15%', top: '70%' },
+    { left: '90%', top: '80%' }
+  ];
+
   return (
     <footer className="footer" ref={footerRef}>
       {/* Background Particles */}
@@ -184,27 +228,22 @@ const Footer = () => {
             style={{
               left: `${particle.x}%`,
               top: `${particle.y}%`,
-              width: `${particle.size}px`,
-              height: `${particle.size}px`,
-              animationDelay: `${particle.delay}s`
+              animationDelay: `${particle.delay}s`,
             }}
           />
         ))}
       </div>
 
       {/* Floating Code Icons */}
-      <div className="floating-code" style={{ left: '10%', top: '20%' }}>
-        <FaCode />
-      </div>
-      <div className="floating-code" style={{ left: '85%', top: '30%' }}>
-        <FaCode />
-      </div>
-      <div className="floating-code" style={{ left: '15%', top: '70%' }}>
-        <FaCode />
-      </div>
-      <div className="floating-code" style={{ left: '90%', top: '80%' }}>
-        <FaCode />
-      </div>
+      {!isMobile && floatingCodePositions.map((pos, index) => (
+        <div 
+          key={index}
+          className="floating-code" 
+          style={pos}
+        >
+          <FaCode />
+        </div>
+      ))}
 
       <div className="container">
         {/* Main Footer Content */}
@@ -243,8 +282,11 @@ const Footer = () => {
                   className="footer-link"
                   ref={el => linksRef.current[index] = el}
                 >
+                  <div className="link-icon">
+                    {link.icon}
+                  </div>
+                  <span className="link-text">{link.name}</span>
                   <div className="link-dot"></div>
-                  <span>{link.name}</span>
                   <div className="link-hover-line"></div>
                 </a>
               ))}
@@ -272,8 +314,8 @@ const Footer = () => {
                     <div className="social-icon">
                       {social.icon}
                     </div>
-                    <div className="icon-glow"></div>
-                    <div className="icon-pulse"></div>
+                    {!isMobile && <div className="icon-glow"></div>}
+                    {!isMobile && <div className="icon-pulse"></div>}
                   </div>
                   <span className="social-name">{social.name}</span>
                 </a>
@@ -299,12 +341,12 @@ const Footer = () => {
           </div>
           
           {/* <div className="made-with-love">
-            <span>Made with</span>
+            <span className="love-text">Made with</span>
             <div className="heart-container" ref={heartbeatRef}>
               <FaHeart className="heart-icon" />
-              <div className="heart-glow"></div>
+              {!isMobile && <div className="heart-glow"></div>}
             </div>
-            <span>by Thashreef</span>
+            <span className="love-text">by Thashreef</span>
           </div> */}
 
           <button 
@@ -314,7 +356,7 @@ const Footer = () => {
             aria-label="Back to top"
           >
             <FaArrowUp />
-            <div className="back-to-top-glow"></div>
+            {!isMobile && <div className="back-to-top-glow"></div>}
           </button>
         </div>
       </div>
@@ -323,10 +365,12 @@ const Footer = () => {
         .footer {
           background: linear-gradient(135deg, #0a192f 0%, #0f172a 100%);
           color: white;
-          padding: 80px 0 40px;
+          padding: 3rem 1rem 1.5rem;
           position: relative;
           overflow: hidden;
           border-top: 1px solid rgba(255, 255, 255, 0.05);
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .particles-container {
@@ -343,6 +387,8 @@ const Footer = () => {
           position: absolute;
           background: rgba(100, 255, 218, 0.3);
           border-radius: 50%;
+          width: 3px;
+          height: 3px;
           animation: floatParticle 6s ease-in-out infinite;
         }
 
@@ -356,54 +402,63 @@ const Footer = () => {
         .floating-code {
           position: absolute;
           color: rgba(96, 165, 250, 0.1);
-          font-size: 2rem;
+          font-size: 1.5rem;
           z-index: 1;
           pointer-events: none;
+          display: none;
         }
 
         .container {
-          max-width: 1200px;
+          max-width: 1280px;
           margin: 0 auto;
-          padding: 0 20px;
+          padding: 0 1rem;
           position: relative;
           z-index: 2;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         /* Main Content */
         .footer-content {
-          display: grid;
-          grid-template-columns: 2fr 1fr 1fr;
-          gap: 60px;
-          margin-bottom: 60px;
+          display: flex;
+          flex-direction: column;
+          gap: 3rem;
+          margin-bottom: 2rem;
+          width: 100%;
         }
 
         /* Logo Section */
         .footer-logo-wrapper {
           position: relative;
+          text-align: center;
+          width: 100%;
         }
 
         .logo-glow {
           position: absolute;
-          top: -50px;
-          left: -50px;
-          width: 200px;
-          height: 200px;
+          top: -2rem;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 8rem;
+          height: 8rem;
           background: radial-gradient(circle, rgba(100, 255, 218, 0.1) 0%, transparent 70%);
-          filter: blur(50px);
+          filter: blur(30px);
           z-index: 1;
         }
 
         .footer-logo {
           display: inline-flex;
           align-items: center;
-          gap: 10px;
-          font-size: 2.5rem;
+          gap: 0.5rem;
+          font-size: 2rem;
           font-weight: 800;
           color: white;
           text-decoration: none;
-          margin-bottom: 20px;
+          margin-bottom: 1rem;
           position: relative;
           z-index: 2;
+          flex-wrap: wrap;
+          justify-content: center;
         }
 
         .logo-text {
@@ -414,8 +469,8 @@ const Footer = () => {
         }
 
         .logo-dot {
-          width: 8px;
-          height: 8px;
+          width: 6px;
+          height: 6px;
           background: #64ffda;
           border-radius: 50%;
           animation: blink 2s infinite;
@@ -432,91 +487,114 @@ const Footer = () => {
 
         .logo-tagline {
           color: #8892b0;
-          font-size: 1.1rem;
-          line-height: 1.6;
-          margin-bottom: 25px;
-          max-width: 400px;
+          font-size: 1rem;
+          line-height: 1.5;
+          margin-bottom: 1.5rem;
+          max-width: 100%;
+          text-align: center;
         }
 
         .logo-decoration {
           display: flex;
           align-items: center;
-          gap: 15px;
-          margin-top: 30px;
+          gap: 1rem;
+          margin-top: 1.5rem;
+          justify-content: center;
         }
 
         .decoration-line {
           flex: 1;
+          max-width: 60px;
           height: 2px;
           background: linear-gradient(90deg, transparent, #64ffda, transparent);
         }
 
         .rocket-icon {
           color: #64ffda;
-          font-size: 1.5rem;
+          font-size: 1.2rem;
           animation: rocketFloat 3s ease-in-out infinite;
         }
 
         @keyframes rocketFloat {
           0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
+          50% { transform: translateY(-5px); }
         }
 
         /* Links Section */
         .links-title,
         .social-title {
-          margin-bottom: 30px;
+          margin-bottom: 1.5rem;
           position: relative;
+          text-align: center;
         }
 
         .title-text {
-          font-size: 1.3rem;
+          font-size: 1.1rem;
           font-weight: 600;
           color: #64ffda;
           display: block;
-          margin-bottom: 10px;
+          margin-bottom: 0.5rem;
         }
 
         .title-underline {
-          width: 50px;
+          width: 40px;
           height: 3px;
           background: linear-gradient(90deg, #64ffda, transparent);
           border-radius: 2px;
+          margin: 0 auto;
         }
 
         .links-grid {
-          display: flex;
-          flex-direction: column;
-          gap: 15px;
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 0.8rem;
+          max-width: 300px;
+          margin: 0 auto;
         }
 
         .footer-link {
           display: flex;
+          flex-direction: column;
           align-items: center;
-          gap: 12px;
+          gap: 0.5rem;
           color: #8892b0;
           text-decoration: none;
-          font-size: 1.1rem;
-          padding: 10px 15px;
-          border-radius: 10px;
+          font-size: 0.9rem;
+          padding: 0.8rem;
+          border-radius: 8px;
           transition: all 0.3s ease;
           position: relative;
           overflow: hidden;
+          text-align: center;
+          min-height: 80px;
+          justify-content: center;
+          background: rgba(255, 255, 255, 0.02);
         }
 
         .footer-link:hover {
           color: white;
           background: rgba(100, 255, 218, 0.05);
-          transform: translateX(10px);
+          transform: translateY(-3px);
+        }
+
+        .link-icon {
+          font-size: 1.2rem;
+          color: #64ffda;
+        }
+
+        .link-text {
+          font-weight: 500;
         }
 
         .link-dot {
-          width: 6px;
-          height: 6px;
+          width: 4px;
+          height: 4px;
           background: #64ffda;
           border-radius: 50%;
           opacity: 0;
           transition: opacity 0.3s ease;
+          position: absolute;
+          bottom: 5px;
         }
 
         .footer-link:hover .link-dot {
@@ -541,27 +619,29 @@ const Footer = () => {
         .social-icons {
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: 1rem;
+          max-width: 300px;
+          margin: 0 auto;
         }
 
         .social-link {
           display: flex;
           align-items: center;
-          gap: 20px;
+          gap: 1rem;
           text-decoration: none;
           color: #8892b0;
-          padding: 15px;
-          border-radius: 15px;
-          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          padding: 1rem;
+          border-radius: 12px;
+          transition: all 0.3s ease;
           position: relative;
           overflow: hidden;
+          background: rgba(255, 255, 255, 0.02);
         }
 
         .social-link:hover {
           color: white;
           background: rgba(255, 255, 255, 0.03);
-          transform: translateY(-5px);
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+          transform: translateY(-3px);
         }
 
         .social-link:hover .social-name {
@@ -570,15 +650,15 @@ const Footer = () => {
 
         .social-icon-wrapper {
           position: relative;
-          width: 50px;
-          height: 50px;
+          width: 40px;
+          height: 40px;
           display: flex;
           align-items: center;
           justify-content: center;
         }
 
         .social-icon {
-          font-size: 1.5rem;
+          font-size: 1.2rem;
           color: inherit;
           position: relative;
           z-index: 2;
@@ -621,17 +701,18 @@ const Footer = () => {
         }
 
         .social-name {
-          font-size: 1.1rem;
+          font-size: 0.95rem;
           font-weight: 500;
           transition: color 0.3s ease;
+          flex: 1;
         }
 
         /* Divider */
         .footer-divider {
           display: flex;
           align-items: center;
-          gap: 20px;
-          margin: 40px 0;
+          gap: 1rem;
+          margin: 2rem 0;
         }
 
         .divider-line {
@@ -641,12 +722,12 @@ const Footer = () => {
         }
 
         .divider-sparkle {
-          width: 10px;
-          height: 10px;
+          width: 6px;
+          height: 6px;
           background: #64ffda;
           border-radius: 50%;
           animation: sparkle 2s infinite;
-          box-shadow: 0 0 20px #64ffda;
+          box-shadow: 0 0 10px #64ffda;
         }
 
         @keyframes sparkle {
@@ -657,32 +738,41 @@ const Footer = () => {
         /* Bottom Section */
         .footer-bottom {
           display: flex;
-          justify-content: space-between;
+          flex-direction: column;
           align-items: center;
-          padding-top: 30px;
+          gap: 1.5rem;
+          padding-top: 1.5rem;
           border-top: 1px solid rgba(255, 255, 255, 0.05);
           position: relative;
+          text-align: center;
         }
 
         .copyright-section {
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: 0.5rem;
           color: #8892b0;
-          font-size: 0.95rem;
+          font-size: 0.85rem;
+          justify-content: center;
+          flex-wrap: wrap;
         }
 
         .copyright-icon {
-          font-size: 0.9rem;
+          font-size: 0.8rem;
           opacity: 0.7;
+        }
+
+        .copyright-text {
+          margin: 0;
         }
 
         .made-with-love {
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: 0.5rem;
           color: #8892b0;
-          font-size: 0.95rem;
+          font-size: 0.85rem;
+          justify-content: center;
         }
 
         .heart-container {
@@ -690,13 +780,13 @@ const Footer = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 30px;
-          height: 30px;
+          width: 25px;
+          height: 25px;
         }
 
         .heart-icon {
           color: #ef4444;
-          font-size: 1.2rem;
+          font-size: 1rem;
           position: relative;
           z-index: 2;
         }
@@ -708,30 +798,30 @@ const Footer = () => {
           background: #ef4444;
           border-radius: 50%;
           opacity: 0.2;
-          filter: blur(10px);
+          filter: blur(8px);
         }
 
         .back-to-top {
-          width: 50px;
-          height: 50px;
+          width: 45px;
+          height: 45px;
           background: rgba(100, 255, 218, 0.1);
           border: 2px solid rgba(100, 255, 218, 0.2);
           border-radius: 50%;
           color: #64ffda;
-          font-size: 1.2rem;
+          font-size: 1rem;
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: all 0.3s ease;
           position: relative;
           overflow: hidden;
+          margin-top: 0.5rem;
         }
 
         .back-to-top:hover {
           background: rgba(100, 255, 218, 0.2);
-          transform: translateY(-5px);
-          box-shadow: 0 10px 30px rgba(100, 255, 218, 0.2);
+          transform: translateY(-3px);
         }
 
         .back-to-top-glow {
@@ -748,73 +838,333 @@ const Footer = () => {
           left: 100%;
         }
 
-        /* Responsive Design */
-        @media (max-width: 992px) {
+        /* Tablet Styles (768px and up) */
+        @media (min-width: 768px) {
+          .footer {
+            padding: 4rem 2rem 2rem;
+          }
+
+          .floating-code {
+            display: block;
+            font-size: 1.8rem;
+          }
+
           .footer-content {
+            display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 40px;
+            gap: 3rem;
           }
 
           .footer-logo-section {
             grid-column: 1 / -1;
-            text-align: center;
+          }
+
+          .logo-glow {
+            top: -3rem;
+            width: 10rem;
+            height: 10rem;
+          }
+
+          .footer-logo {
+            font-size: 2.5rem;
           }
 
           .logo-tagline {
-            margin: 0 auto 25px;
-          }
-        }
-
-        @media (max-width: 768px) {
-          .footer {
-            padding: 60px 0 30px;
+            font-size: 1.1rem;
+            max-width: 500px;
+            margin: 0 auto 2rem;
           }
 
-          .footer-content {
+          .links-title,
+          .social-title {
+            text-align: left;
+          }
+
+          .title-underline {
+            margin: 0;
+          }
+
+          .links-grid {
             grid-template-columns: 1fr;
-            gap: 40px;
-            text-align: center;
-          }
-
-          .footer-bottom {
-            flex-direction: column;
-            gap: 25px;
-            text-align: center;
-          }
-
-          .links-grid,
-          .social-icons {
-            align-items: center;
+            max-width: 100%;
+            margin: 0;
           }
 
           .footer-link {
-            justify-content: center;
+            flex-direction: row;
+            justify-content: flex-start;
+            text-align: left;
+            min-height: auto;
+            padding: 0.8rem 1rem;
           }
 
-          .footer-link:hover {
-            transform: translateY(-5px);
+          .link-icon {
+            font-size: 1rem;
+            width: 20px;
+          }
+
+          .link-text {
+            flex: 1;
+            font-size: 0.95rem;
+          }
+
+          .social-icons {
+            max-width: 100%;
+            margin: 0;
           }
 
           .social-link {
-            justify-content: center;
+            padding: 0.8rem 1rem;
           }
 
-          .logo-decoration {
-            justify-content: center;
+          .social-name {
+            font-size: 0.9rem;
+          }
+
+          .footer-bottom {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            text-align: left;
+          }
+
+          .back-to-top {
+            margin-top: 0;
+            width: 40px;
+            height: 40px;
           }
         }
 
-        @media (max-width: 576px) {
-          .footer-logo {
-            font-size: 2rem;
-          }
-
-          .logo-tagline {
-            font-size: 1rem;
+        /* Desktop Styles (1024px and up) */
+        @media (min-width: 1024px) {
+          .footer {
+            padding: 5rem 2rem 2.5rem;
           }
 
           .floating-code {
-            display: none;
+            font-size: 2rem;
+          }
+
+          .footer-content {
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 4rem;
+          }
+
+          .footer-logo-section {
+            grid-column: auto;
+            text-align: left;
+          }
+
+          .logo-glow {
+            left: -2rem;
+            top: -2rem;
+            transform: none;
+            width: 12rem;
+            height: 12rem;
+          }
+
+          .footer-logo {
+            justify-content: flex-start;
+          }
+
+          .logo-tagline {
+            text-align: left;
+            margin: 0 0 2rem;
+            max-width: 400px;
+          }
+
+          .logo-decoration {
+            justify-content: flex-start;
+          }
+
+          .decoration-line {
+            max-width: 80px;
+          }
+
+          .links-grid {
+            gap: 1rem;
+          }
+
+          .footer-link:hover {
+            transform: translateX(10px);
+          }
+
+          .social-link:hover {
+            transform: translateY(-5px);
+          }
+
+          .back-to-top {
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+          }
+        }
+
+        /* Large Desktop Styles (1200px and up) */
+        @media (min-width: 1200px) {
+          .footer {
+            padding: 6rem 2rem 3rem;
+          }
+
+          .footer-logo {
+            font-size: 3rem;
+          }
+
+          .logo-tagline {
+            font-size: 1.15rem;
+          }
+
+          .links-grid {
+            gap: 1.2rem;
+          }
+
+          .footer-link {
+            padding: 1rem 1.2rem;
+            font-size: 1rem;
+          }
+
+          .social-link {
+            padding: 1rem 1.2rem;
+          }
+
+          .social-name {
+            font-size: 1rem;
+          }
+
+          .copyright-section {
+            font-size: 0.9rem;
+          }
+        }
+
+        /* Small Mobile Devices (480px and below) */
+        @media (max-width: 480px) {
+          .footer {
+            padding: 2rem 1rem 1rem;
+          }
+
+          .footer-logo {
+            font-size: 1.8rem;
+            gap: 0.3rem;
+          }
+
+          .logo-tagline {
+            font-size: 0.9rem;
+            line-height: 1.4;
+          }
+
+          .links-grid {
+            grid-template-columns: 1fr;
+            max-width: 250px;
+          }
+
+          .footer-link {
+            flex-direction: row;
+            justify-content: flex-start;
+            text-align: left;
+            min-height: auto;
+            padding: 0.7rem;
+          }
+
+          .link-icon {
+            font-size: 1rem;
+            width: 20px;
+          }
+
+          .link-text {
+            flex: 1;
+            font-size: 0.85rem;
+          }
+
+          .social-link {
+            padding: 0.8rem;
+          }
+
+          .social-name {
+            font-size: 0.85rem;
+          }
+
+          .copyright-section {
+            font-size: 0.8rem;
+          }
+
+          .back-to-top {
+            width: 40px;
+            height: 40px;
+            font-size: 0.9rem;
+          }
+        }
+
+        /* Landscape Mode */
+        @media (max-height: 600px) and (orientation: landscape) {
+          .footer {
+            padding: 2rem 1rem 1rem;
+          }
+
+          .footer-content {
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+          }
+
+          .footer-link {
+            min-height: 60px;
+            padding: 0.5rem;
+          }
+
+          .social-link {
+            padding: 0.7rem;
+          }
+
+          .footer-bottom {
+            padding-top: 1rem;
+          }
+        }
+
+        /* High DPI Screens */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+          .particle {
+            width: 2px;
+            height: 2px;
+          }
+        }
+
+        /* Print Styles */
+        @media print {
+          .footer {
+            background: white !important;
+            color: black !important;
+            border-top: 2px solid #ccc;
+          }
+
+          .particles-container,
+          .floating-code,
+          .logo-glow,
+          .icon-glow,
+          .icon-pulse,
+          .heart-glow,
+          .back-to-top-glow,
+          .link-hover-line {
+            display: none !important;
+          }
+
+          .footer-link,
+          .social-link {
+            background: transparent !important;
+            color: #333 !important;
+            text-decoration: underline;
+          }
+
+          .footer-link:hover,
+          .social-link:hover {
+            transform: none !important;
+          }
+
+          .back-to-top {
+            display: none !important;
+          }
+
+          .logo-text {
+            -webkit-text-fill-color: #333 !important;
+            color: #333 !important;
           }
         }
       `}</style>

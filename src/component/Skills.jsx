@@ -1,10 +1,14 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const Skills = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+  const [particleCount, setParticleCount] = useState(20);
+  
   const skillsRef = useRef(null);
   const titleRef = useRef(null);
   const categoryCardsRef = useRef([]);
@@ -12,6 +16,24 @@ const Skills = () => {
   const progressBarsRef = useRef([]);
   const particlesRef = useRef([]);
   const statsRef = useRef([]);
+
+  // Check screen size on mount and resize
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      const mobile = width < 768;
+      const tablet = width >= 768 && width < 1024;
+      
+      setIsMobile(mobile);
+      setIsTablet(tablet);
+      setParticleCount(mobile ? 10 : tablet ? 15 : 20);
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   // Enhanced skill categories based on your resume
   const skillCategories = [
@@ -122,6 +144,8 @@ const Skills = () => {
   ];
 
   useEffect(() => {
+    if (isMobile) return;
+
     const ctx = gsap.context(() => {
       // Animate particles
       particlesRef.current.forEach((particle, i) => {
@@ -168,16 +192,6 @@ const Skills = () => {
             duration: 1,
             delay: i * 0.15,
             ease: 'power3.out'
-          });
-
-          // Continuous hover pulse
-          gsap.to(card, {
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
-            duration: 2,
-            repeat: -1,
-            yoyo: true,
-            ease: 'sine.inOut',
-            paused: true
           });
         }
       });
@@ -263,16 +277,20 @@ const Skills = () => {
     }, skillsRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [isMobile]);
 
   return (
     <section id="skills" className="skills-section" ref={skillsRef}>
       {/* Animated Background */}
       <div className="skills-background">
-        <div className="gradient-orb orb-1"></div>
-        <div className="gradient-orb orb-2"></div>
-        <div className="gradient-orb orb-3"></div>
-        {[...Array(20)].map((_, i) => (
+        {!isMobile && (
+          <>
+            <div className="gradient-orb orb-1"></div>
+            <div className="gradient-orb orb-2"></div>
+            <div className="gradient-orb orb-3"></div>
+          </>
+        )}
+        {[...Array(particleCount)].map((_, i) => (
           <div
             key={i}
             className="particle"
@@ -280,8 +298,6 @@ const Skills = () => {
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
-              width: `${Math.random() * 4 + 2}px`,
-              height: `${Math.random() * 4 + 2}px`
             }}
           />
         ))}
@@ -322,7 +338,7 @@ const Skills = () => {
               {/* Card Header */}
               <div className="card-header">
                 <div className="category-icon-wrapper">
-                  <div className="icon-glow" style={{ background: category.glowColor }}></div>
+                  {!isMobile && <div className="icon-glow" style={{ background: category.glowColor }}></div>}
                   <span className="category-icon">{category.icon}</span>
                 </div>
                 <div className="category-info">
@@ -369,10 +385,10 @@ const Skills = () => {
                             className="progress-fill"
                             style={{
                               background: `linear-gradient(90deg, ${skill.color}, ${skill.color}dd)`,
-                              boxShadow: `0 0 15px ${skill.color}80`
+                              boxShadow: !isMobile ? `0 0 15px ${skill.color}80` : 'none'
                             }}
                           >
-                            <div className="progress-shine"></div>
+                            {!isMobile && <div className="progress-shine"></div>}
                           </div>
                         </div>
                         <div className="progress-markers">
@@ -407,7 +423,7 @@ const Skills = () => {
                 <div className="stat-icon">{stat.icon}</div>
                 <div className="stat-value">{stat.value}</div>
                 <div className="stat-label">{stat.label}</div>
-                <div className="stat-glow"></div>
+                {!isMobile && <div className="stat-glow"></div>}
               </div>
             ))}
           </div>
@@ -434,8 +450,10 @@ const Skills = () => {
           position: relative;
           background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
           color: #1f2937;
-          padding: 120px 0;
+          padding: 4rem 1rem;
           overflow: hidden;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         /* Animated Background */
@@ -455,39 +473,7 @@ const Skills = () => {
           filter: blur(80px);
           opacity: 0.1;
           animation: float 20s infinite ease-in-out;
-        }
-
-        .orb-1 {
-          width: 400px;
-          height: 400px;
-          background: radial-gradient(circle, #3b82f6, transparent);
-          top: -100px;
-          left: -100px;
-          animation-delay: 0s;
-        }
-
-        .orb-2 {
-          width: 500px;
-          height: 500px;
-          background: radial-gradient(circle, #ec4899, transparent);
-          bottom: -150px;
-          right: -150px;
-          animation-delay: 7s;
-        }
-
-        .orb-3 {
-          width: 350px;
-          height: 350px;
-          background: radial-gradient(circle, #0ea5e9, transparent);
-          top: 50%;
-          left: 50%;
-          animation-delay: 14s;
-        }
-
-        @keyframes float {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(50px, -50px) scale(1.1); }
-          66% { transform: translate(-30px, 30px) scale(0.9); }
+          display: none;
         }
 
         .particle {
@@ -495,46 +481,51 @@ const Skills = () => {
           background: rgba(59, 130, 246, 0.1);
           border-radius: 50%;
           pointer-events: none;
+          width: 2px;
+          height: 2px;
         }
 
         .container {
-          max-width: 1400px;
+          max-width: 1280px;
           margin: 0 auto;
-          padding: 0 24px;
+          padding: 0 1rem;
           position: relative;
           z-index: 1;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         /* Header Section */
         .skills-header {
           text-align: center;
-          margin-bottom: 80px;
+          margin-bottom: 3rem;
+          width: 100%;
         }
 
         .header-badge {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
+          gap: 0.5rem;
           background: rgba(59, 130, 246, 0.1);
           backdrop-filter: blur(10px);
-          padding: 10px 24px;
+          padding: 0.5rem 1.2rem;
           border-radius: 50px;
           border: 1px solid rgba(59, 130, 246, 0.2);
-          margin-bottom: 24px;
-          font-size: 0.9rem;
+          margin-bottom: 1.2rem;
+          font-size: 0.8rem;
           font-weight: 600;
           color: #3b82f6;
         }
 
         .badge-icon {
-          font-size: 1.2rem;
+          font-size: 1rem;
         }
 
         .skills-title {
-          font-size: 4.5rem;
+          font-size: 2.2rem;
           font-weight: 900;
-          margin: 0 0 16px 0;
-          line-height: 1.1;
+          margin: 0 0 1rem 0;
+          line-height: 1.2;
         }
 
         .title-main {
@@ -551,36 +542,35 @@ const Skills = () => {
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          font-size: 3rem;
+          font-size: 1.8rem;
         }
 
         .skills-description {
           color: #6b7280;
-          font-size: 1.2rem;
-          line-height: 1.8;
-          margin: 0 0 32px 0;
+          font-size: 1rem;
+          line-height: 1.6;
+          margin: 0 0 1.5rem 0;
         }
 
         .title-decoration {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 12px;
-          margin-top: 32px;
+          gap: 0.8rem;
+          margin-top: 1.5rem;
         }
 
         .decoration-line {
-          width: 60px;
+          width: 2rem;
           height: 2px;
           background: linear-gradient(90deg, transparent, #3b82f6, transparent);
         }
 
         .decoration-dot {
-          width: 8px;
-          height: 8px;
+          width: 6px;
+          height: 6px;
           background: #3b82f6;
           border-radius: 50%;
-          box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
           animation: pulse-dot 2s infinite;
         }
 
@@ -591,23 +581,25 @@ const Skills = () => {
 
         /* Skills Grid */
         .skills-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-          gap: 32px;
-          margin-bottom: 80px;
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+          margin-bottom: 3rem;
+          width: 100%;
         }
 
         /* Category Card */
         .category-card {
           background: white;
-          backdrop-filter: blur(20px);
-          border-radius: 24px;
-          padding: 32px;
+          border-radius: 16px;
+          padding: 1.5rem;
           border: 1px solid rgba(209, 213, 219, 0.6);
           position: relative;
           overflow: hidden;
-          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+          transition: all 0.3s ease;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .category-card::before {
@@ -621,47 +613,31 @@ const Skills = () => {
           opacity: 0.8;
         }
 
-        .category-card::after {
-          content: '';
-          position: absolute;
-          top: -50%;
-          left: -50%;
-          width: 200%;
-          height: 200%;
-          background: radial-gradient(circle, var(--glow-color) 0%, transparent 70%);
-          opacity: 0;
-          transition: opacity 0.4s;
-        }
-
         .category-card:hover {
-          transform: translateY(-8px);
+          transform: translateY(-4px);
           border-color: var(--glow-color);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        }
-
-        .category-card:hover::after {
-          opacity: 0.05;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
         }
 
         /* Card Header */
         .card-header {
           display: flex;
           align-items: center;
-          gap: 20px;
-          margin-bottom: 32px;
+          gap: 1rem;
+          margin-bottom: 1.5rem;
           position: relative;
           z-index: 1;
         }
 
         .category-icon-wrapper {
           position: relative;
-          width: 64px;
-          height: 64px;
+          width: 3rem;
+          height: 3rem;
           display: flex;
           align-items: center;
           justify-content: center;
           background: rgba(59, 130, 246, 0.05);
-          border-radius: 16px;
+          border-radius: 12px;
           flex-shrink: 0;
         }
 
@@ -669,13 +645,13 @@ const Skills = () => {
           position: absolute;
           width: 100%;
           height: 100%;
-          border-radius: 16px;
+          border-radius: 12px;
           opacity: 0.2;
           filter: blur(20px);
         }
 
         .category-icon {
-          font-size: 2rem;
+          font-size: 1.5rem;
           position: relative;
           z-index: 1;
         }
@@ -685,23 +661,23 @@ const Skills = () => {
         }
 
         .category-title {
-          font-size: 1.5rem;
+          font-size: 1.2rem;
           font-weight: 700;
-          margin: 0 0 8px 0;
+          margin: 0 0 0.5rem 0;
           color: #1f2937;
         }
 
         .category-line {
           height: 3px;
           border-radius: 2px;
-          max-width: 120px;
+          max-width: 80px;
         }
 
         /* Skills List */
         .skills-list {
           display: flex;
           flex-direction: column;
-          gap: 28px;
+          gap: 1.2rem;
         }
 
         /* Skill Item */
@@ -713,69 +689,72 @@ const Skills = () => {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 8px;
+          margin-bottom: 0.5rem;
         }
 
         .skill-name-wrapper {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 0.8rem;
+          flex: 1;
         }
 
         .skill-dot {
-          width: 10px;
-          height: 10px;
+          width: 8px;
+          height: 8px;
           border-radius: 50%;
-          box-shadow: 0 0 10px currentColor;
+          flex-shrink: 0;
         }
 
         .skill-name {
-          font-size: 1.1rem;
+          font-size: 0.95rem;
           font-weight: 600;
           margin: 0;
           color: #1f2937;
+          word-break: break-word;
         }
 
         .skill-percent {
           display: flex;
           align-items: baseline;
-          gap: 2px;
+          gap: 1px;
           font-weight: 700;
+          flex-shrink: 0;
         }
 
         .skill-percent-value {
-          font-size: 1.4rem;
+          font-size: 1.2rem;
         }
 
         .percent-sign {
-          font-size: 1rem;
+          font-size: 0.8rem;
           color: #6b7280;
         }
 
         .skill-description {
-          font-size: 0.9rem;
+          font-size: 0.8rem;
           color: #6b7280;
-          margin: 0 0 12px 22px;
-          line-height: 1.5;
+          margin: 0 0 0.8rem 1.5rem;
+          line-height: 1.4;
         }
 
         /* Progress Bar */
         .progress-container {
-          margin-left: 22px;
+          margin-left: 1.5rem;
         }
 
         .progress-track {
-          height: 8px;
+          height: 6px;
           background: #f3f4f6;
-          border-radius: 4px;
+          border-radius: 3px;
           overflow: hidden;
           position: relative;
-          margin-bottom: 8px;
+          margin-bottom: 0.5rem;
         }
 
         .progress-fill {
           height: 100%;
-          border-radius: 4px;
+          border-radius: 3px;
           position: relative;
           transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -797,64 +776,63 @@ const Skills = () => {
 
         .progress-markers {
           display: flex;
-          gap: 4px;
+          gap: 2px;
           justify-content: space-between;
         }
 
         .marker {
           width: 100%;
-          height: 4px;
-          border-radius: 2px;
+          height: 3px;
+          border-radius: 1px;
           transition: background 0.3s;
         }
 
         /* Stats Section */
         .stats-section {
-          margin: 80px 0;
+          margin: 3rem 0;
         }
 
         .stats-container {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 24px;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1rem;
         }
 
         .stat-card {
           position: relative;
           background: white;
-          backdrop-filter: blur(10px);
           border: 1px solid rgba(209, 213, 219, 0.6);
-          border-radius: 20px;
-          padding: 32px;
+          border-radius: 12px;
+          padding: 1.2rem;
           text-align: center;
           transition: all 0.3s;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .stat-card:hover {
-          transform: translateY(-8px);
+          transform: translateY(-4px);
           border-color: rgba(59, 130, 246, 0.3);
-          box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
         }
 
         .stat-icon {
-          font-size: 3rem;
-          margin-bottom: 12px;
+          font-size: 2rem;
+          margin-bottom: 0.5rem;
           opacity: 0.8;
         }
 
         .stat-value {
-          font-size: 3rem;
+          font-size: 1.8rem;
           font-weight: 900;
           background: linear-gradient(135deg, #3b82f6, #8b5cf6);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          margin-bottom: 8px;
+          margin-bottom: 0.3rem;
         }
 
         .stat-label {
-          font-size: 1rem;
+          font-size: 0.8rem;
           color: #6b7280;
           font-weight: 600;
         }
@@ -864,8 +842,8 @@ const Skills = () => {
           bottom: 0;
           left: 50%;
           transform: translateX(-50%);
-          width: 80%;
-          height: 4px;
+          width: 60%;
+          height: 3px;
           background: linear-gradient(90deg, transparent, #3b82f6, transparent);
           border-radius: 2px;
           opacity: 0;
@@ -880,52 +858,153 @@ const Skills = () => {
         .skills-cta {
           background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
           border: 1px solid rgba(59, 130, 246, 0.2);
-          border-radius: 24px;
-          padding: 48px;
+          border-radius: 16px;
+          padding: 1.5rem;
           text-align: center;
           backdrop-filter: blur(10px);
         }
 
         .cta-title {
-          font-size: 2.2rem;
+          font-size: 1.4rem;
           font-weight: 800;
-          margin: 0 0 16px 0;
+          margin: 0 0 0.8rem 0;
           color: #1f2937;
         }
 
         .cta-text {
-          font-size: 1.1rem;
+          font-size: 0.9rem;
           color: #6b7280;
-          margin: 0 0 32px 0;
+          margin: 0 0 1.5rem 0;
         }
 
         .cta-badges {
           display: flex;
-          justify-content: center;
-          gap: 12px;
-          flex-wrap: wrap;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.8rem;
         }
 
         .cta-badge {
-          padding: 10px 20px;
+          padding: 0.6rem 1.2rem;
           background: rgba(59, 130, 246, 0.1);
           border: 1px solid rgba(59, 130, 246, 0.2);
           border-radius: 50px;
-          font-size: 0.9rem;
+          font-size: 0.8rem;
           font-weight: 600;
           color: #3b82f6;
           transition: all 0.3s;
+          width: fit-content;
         }
 
-        .cta-badge:hover {
-          background: rgba(59, 130, 246, 0.2);
-          transform: scale(1.05);
-        }
+        /* Tablet Styles (768px and up) */
+        @media (min-width: 768px) {
+          .skills-section {
+            padding: 5rem 2rem;
+          }
 
-        /* Responsive Design */
-        @media (max-width: 1024px) {
+          .skills-header {
+            margin-bottom: 4rem;
+          }
+
+          .skills-title {
+            font-size: 3rem;
+          }
+
+          .title-sub {
+            font-size: 2.2rem;
+          }
+
+          .skills-description {
+            font-size: 1.1rem;
+          }
+
           .skills-grid {
-            grid-template-columns: 1fr;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+          }
+
+          .category-card {
+            padding: 2rem;
+          }
+
+          .category-title {
+            font-size: 1.3rem;
+          }
+
+          .skill-name {
+            font-size: 1rem;
+          }
+
+          .skill-description {
+            font-size: 0.85rem;
+          }
+
+          .stats-container {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+          }
+
+          .stat-card {
+            padding: 1.5rem;
+          }
+
+          .stat-icon {
+            font-size: 2.5rem;
+          }
+
+          .stat-value {
+            font-size: 2.2rem;
+          }
+
+          .stat-label {
+            font-size: 0.9rem;
+          }
+
+          .skills-cta {
+            padding: 2rem;
+          }
+
+          .cta-title {
+            font-size: 1.8rem;
+          }
+
+          .cta-text {
+            font-size: 1rem;
+          }
+
+          .cta-badges {
+            flex-direction: row;
+            justify-content: center;
+          }
+
+          .orb-1 {
+            display: block;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, #3b82f6, transparent);
+            top: -50px;
+            left: -50px;
+            animation-delay: 0s;
+            filter: blur(50px);
+          }
+
+          @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+          }
+        }
+
+        /* Desktop Styles (1024px and up) */
+        @media (min-width: 1024px) {
+          .skills-section {
+            padding: 6rem 2rem;
+          }
+
+          .skills-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
           }
 
           .skills-title {
@@ -935,60 +1014,150 @@ const Skills = () => {
           .title-sub {
             font-size: 2.5rem;
           }
-        }
-
-        @media (max-width: 768px) {
-          .skills-section {
-            padding: 80px 0;
-          }
-
-          .skills-header {
-            margin-bottom: 60px;
-          }
-
-          .skills-title {
-            font-size: 2.8rem;
-          }
-
-          .title-sub {
-            font-size: 2rem;
-          }
 
           .skills-description {
-            font-size: 1rem;
-          }
-
-          .category-card {
-            padding: 24px;
-          }
-
-          .stats-container {
-            grid-template-columns: repeat(2, 1fr);
-          }
-
-          .skills-cta {
-            padding: 32px 24px;
-          }
-
-          .cta-title {
-            font-size: 1.8rem;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .skills-title {
-            font-size: 2.2rem;
-          }
-
-          .title-sub {
-            font-size: 1.6rem;
-          }
-
-          .category-title {
             font-size: 1.2rem;
           }
 
+          .category-card {
+            padding: 2.5rem;
+          }
+
+          .category-title {
+            font-size: 1.5rem;
+          }
+
           .skill-name {
+            font-size: 1.1rem;
+          }
+
+          .skill-description {
+            font-size: 0.9rem;
+          }
+
+          .stats-container {
+            gap: 2rem;
+          }
+
+          .stat-card {
+            padding: 2rem;
+          }
+
+          .stat-icon {
+            font-size: 3rem;
+          }
+
+          .stat-value {
+            font-size: 2.5rem;
+          }
+
+          .stat-label {
+            font-size: 1rem;
+          }
+
+          .skills-cta {
+            padding: 3rem;
+          }
+
+          .cta-title {
+            font-size: 2.2rem;
+          }
+
+          .orb-1 {
+            width: 300px;
+            height: 300px;
+            top: -100px;
+            left: -100px;
+          }
+
+          .orb-2 {
+            display: block;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, #ec4899, transparent);
+            bottom: -100px;
+            right: -100px;
+            animation-delay: 7s;
+            filter: blur(60px);
+          }
+
+          .orb-3 {
+            display: block;
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, #0ea5e9, transparent);
+            top: 50%;
+            left: 50%;
+            animation-delay: 14s;
+            filter: blur(60px);
+          }
+        }
+
+        /* Large Desktop Styles (1200px and up) */
+        @media (min-width: 1200px) {
+          .skills-section {
+            padding: 8rem 2rem;
+          }
+
+          .skills-title {
+            font-size: 4rem;
+          }
+
+          .title-sub {
+            font-size: 3rem;
+          }
+
+          .orb-1 {
+            width: 400px;
+            height: 400px;
+            filter: blur(80px);
+          }
+
+          .orb-2 {
+            width: 500px;
+            height: 500px;
+            filter: blur(80px);
+          }
+
+          .orb-3 {
+            width: 350px;
+            height: 350px;
+            filter: blur(80px);
+          }
+        }
+
+        /* Small Mobile Devices (480px and below) */
+        @media (max-width: 480px) {
+          .skills-section {
+            padding: 3rem 1rem;
+          }
+
+          .skills-title {
+            font-size: 1.8rem;
+          }
+
+          .title-sub {
+            font-size: 1.4rem;
+          }
+
+          .header-badge {
+            font-size: 0.7rem;
+            padding: 0.4rem 1rem;
+          }
+
+          .category-card {
+            padding: 1.2rem;
+          }
+
+          .category-title {
+            font-size: 1.1rem;
+          }
+
+          .skill-name {
+            font-size: 0.9rem;
+          }
+
+          .skill-percent-value {
             font-size: 1rem;
           }
 
@@ -996,9 +1165,99 @@ const Skills = () => {
             grid-template-columns: 1fr;
           }
 
-          .cta-badges {
-            flex-direction: column;
-            align-items: center;
+          .stat-card {
+            padding: 1rem;
+          }
+
+          .stat-icon {
+            font-size: 1.8rem;
+          }
+
+          .stat-value {
+            font-size: 1.5rem;
+          }
+
+          .cta-title {
+            font-size: 1.2rem;
+          }
+
+          .cta-text {
+            font-size: 0.85rem;
+          }
+
+          .cta-badge {
+            font-size: 0.75rem;
+            padding: 0.5rem 1rem;
+          }
+        }
+
+        /* Landscape Mode */
+        @media (max-height: 600px) and (orientation: landscape) {
+          .skills-section {
+            padding: 3rem 1rem;
+          }
+
+          .skills-grid {
+            gap: 1rem;
+            margin-bottom: 2rem;
+          }
+
+          .category-card {
+            padding: 1rem;
+          }
+
+          .skill-item {
+            margin-bottom: 0.5rem;
+          }
+
+          .stats-section {
+            margin: 2rem 0;
+          }
+        }
+
+        /* High DPI Screens */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+          .particle {
+            width: 1px;
+            height: 1px;
+          }
+        }
+
+        /* Print Styles */
+        @media print {
+          .skills-section {
+            background: white !important;
+            padding: 2rem 1rem !important;
+          }
+
+          .skills-background,
+          .icon-glow,
+          .progress-shine,
+          .stat-glow {
+            display: none !important;
+          }
+
+          .category-card {
+            break-inside: avoid;
+            border: 2px solid #ddd !important;
+            box-shadow: none !important;
+          }
+
+          .category-card:hover {
+            transform: none !important;
+            border-color: #ddd !important;
+          }
+
+          .skills-title .title-main,
+          .skills-title .title-sub,
+          .stat-value {
+            -webkit-text-fill-color: #333 !important;
+            color: #333 !important;
+          }
+
+          .progress-fill {
+            background: #333 !important;
+            box-shadow: none !important;
           }
         }
       `}</style>
