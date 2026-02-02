@@ -465,8 +465,8 @@ const Projects = () => {
 
       <style jsx>{`
         .projects {
-          background: linear-gradient(135deg, #0a192f 0%, #112240 100%);
-          color: white;
+          background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+          color: #1f2937;
           position: relative;
           overflow: hidden;
           padding: 100px 0;
@@ -479,8 +479,8 @@ const Projects = () => {
           top: 0;
           left: 0;
           background-image: 
-            linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            linear-gradient(rgba(59, 130, 246, 0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(59, 130, 246, 0.02) 1px, transparent 1px);
           background-size: 50px 50px;
           opacity: 0.3;
           pointer-events: none;
@@ -498,9 +498,9 @@ const Projects = () => {
         .shape {
           position: absolute;
           border-radius: 50%;
-          background: radial-gradient(circle, var(--accent-color, rgba(96, 165, 250, 0.1)) 0%, transparent 70%);
+          background: radial-gradient(circle, var(--accent-color, rgba(59, 130, 246, 0.1)) 0%, transparent 70%);
           filter: blur(40px);
-          opacity: 0.3;
+          opacity: 0.2;
           animation: floatShape 20s ease-in-out infinite;
         }
 
@@ -566,7 +566,7 @@ const Projects = () => {
         }
 
         .title-text {
-          background: linear-gradient(45deg, #64ffda, #60a5fa, #8b5cf6);
+          background: linear-gradient(45deg, #3b82f6, #0ea5e9, #8b5cf6);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -578,7 +578,7 @@ const Projects = () => {
         .title-line {
           width: 200px;
           height: 4px;
-          background: linear-gradient(90deg, transparent, var(--accent-color, #64ffda), transparent);
+          background: linear-gradient(90deg, transparent, #3b82f6, transparent);
           margin: 20px auto;
           border-radius: 2px;
           position: relative;
@@ -591,7 +591,7 @@ const Projects = () => {
           left: -100%;
           width: 100%;
           height: 100%;
-          background: linear-gradient(90deg, transparent, white, transparent);
+          background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.5), transparent);
           animation: shine 3s infinite;
         }
 
@@ -602,7 +602,7 @@ const Projects = () => {
 
         .title-sub {
           display: block;
-          color: #8892b0;
+          color: #6b7280;
           font-size: 1.2rem;
           font-weight: 400;
           margin-top: 15px;
@@ -618,7 +618,7 @@ const Projects = () => {
         }
 
         .decoration-icon {
-          color: #64ffda;
+          color: #3b82f6;
           font-size: 2rem;
           opacity: 0.5;
           animation: bounce 2s ease-in-out infinite;
@@ -653,26 +653,26 @@ const Projects = () => {
 
         /* Project Card */
         .project-card {
-          background: rgba(17, 34, 64, 0.7);
+          background: white;
           padding: 40px;
           border-radius: 25px;
           backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(209, 213, 219, 0.6);
           position: relative;
           overflow: hidden;
           transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
           box-shadow: 
-            0 20px 60px rgba(0, 0, 0, 0.3),
-            inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            0 4px 6px -1px rgba(0, 0, 0, 0.05),
+            0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
 
         .project-card:hover {
           transform: translateY(-15px) scale(1.02);
           box-shadow: 
-            0 40px 80px rgba(0, 0, 0, 0.4),
-            0 0 100px var(--accent-color, rgba(96, 165, 250, 0.2)),
+            0 20px 40px rgba(0, 0, 0, 0.1),
+            0 0 100px rgba(59, 130, 246, 0.1),
             inset 0 1px 0 rgba(255, 255, 255, 0.1);
-          border-color: var(--accent-color, rgba(96, 165, 250, 0.3));
+          border-color: var(--accent-color, rgba(59, 130, 246, 0.3));
         }
 
         .particles-container {
@@ -691,14 +691,14 @@ const Projects = () => {
           height: 4px;
           background: var(--particle-color);
           border-radius: 50%;
-          opacity: 0.6;
+          opacity: 0.4;
           filter: blur(1px);
           animation: particleFloat 4s ease-in-out infinite;
         }
 
         @keyframes particleFloat {
-          0%, 100% { transform: translate(0, 0); opacity: 0.6; }
-          50% { transform: translate(10px, -10px); opacity: 0.3; }
+          0%, 100% { transform: translate(0, 0); opacity: 0.4; }
+          50% { transform: translate(10px, -10px); opacity: 0.2; }
         }
 
         .card-glow {
@@ -707,7 +707,7 @@ const Projects = () => {
           left: -100px;
           right: -100px;
           bottom: -100px;
-          background: radial-gradient(circle at center, var(--accent-color, rgba(96, 165, 250, 0.1)) 0%, transparent 70%);
+          background: radial-gradient(circle at center, var(--accent-color, rgba(59, 130, 246, 0.1)) 0%, transparent 70%);
           opacity: 0;
           transition: opacity 0.3s ease;
           pointer-events: none;
@@ -715,7 +715,7 @@ const Projects = () => {
         }
 
         .project-card:hover .card-glow {
-          opacity: 0.3;
+          opacity: 0.2;
         }
 
         /* Project Header */
@@ -741,7 +741,7 @@ const Projects = () => {
           height: 100%;
           background: var(--accent-color);
           border-radius: 50%;
-          opacity: 0.2;
+          opacity: 0.1;
           filter: blur(20px);
         }
 
@@ -764,7 +764,7 @@ const Projects = () => {
           position: absolute;
           border: 1px solid var(--accent-color);
           border-radius: 50%;
-          opacity: 0.2;
+          opacity: 0.1;
         }
 
         .orbit-1 {
@@ -806,7 +806,7 @@ const Projects = () => {
         }
 
         .project-title-text {
-          color: white;
+          color: #1f2937;
           position: relative;
           z-index: 2;
         }
@@ -821,7 +821,7 @@ const Projects = () => {
           background-clip: text;
           z-index: 1;
           filter: blur(5px);
-          opacity: 0.5;
+          opacity: 0.3;
         }
 
         .project-subtitle {
@@ -836,11 +836,12 @@ const Projects = () => {
           align-items: center;
           gap: 8px;
           padding: 6px 15px;
-          background: rgba(255, 255, 255, 0.05);
+          background: rgba(59, 130, 246, 0.05);
           border-radius: 20px;
           font-size: 0.85rem;
           font-weight: 600;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(59, 130, 246, 0.1);
+          color: #3b82f6;
         }
 
         .type-dot {
@@ -861,7 +862,7 @@ const Projects = () => {
           display: flex;
           gap: 15px;
           margin-bottom: 30px;
-          background: rgba(255, 255, 255, 0.02);
+          background: rgba(59, 130, 246, 0.03);
           padding: 20px;
           border-radius: 15px;
           border-left: 3px solid var(--accent-color);
@@ -874,7 +875,7 @@ const Projects = () => {
         }
 
         .project-description {
-          color: #8892b0;
+          color: #6b7280;
           line-height: 1.7;
           margin: 0;
           flex: 1;
@@ -898,7 +899,7 @@ const Projects = () => {
         }
 
         .features-header h4 {
-          color: white;
+          color: #1f2937;
           margin: 0;
           font-size: 1.2rem;
         }
@@ -913,7 +914,7 @@ const Projects = () => {
           display: flex;
           gap: 15px;
           padding: 12px 0;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+          border-bottom: 1px solid rgba(209, 213, 219, 0.5);
         }
 
         .feature-item:last-child {
@@ -935,7 +936,7 @@ const Projects = () => {
         }
 
         .feature-text {
-          color: #cbd5e1;
+          color: #4b5563;
           font-size: 0.95rem;
           line-height: 1.5;
           display: block;
@@ -973,7 +974,7 @@ const Projects = () => {
         }
 
         .tech-header h5 {
-          color: white;
+          color: #1f2937;
           margin: 0;
           font-size: 1.1rem;
         }
@@ -986,12 +987,12 @@ const Projects = () => {
 
         .tech-tag {
           padding: 8px 16px;
-          background: rgba(255, 255, 255, 0.05);
-          color: #cbd5e1;
+          background: rgba(59, 130, 246, 0.05);
+          color: #4b5563;
           border-radius: 20px;
           font-size: 0.85rem;
           font-weight: 500;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(59, 130, 246, 0.1);
           position: relative;
           overflow: hidden;
           transition: all 0.3s ease;
@@ -999,8 +1000,8 @@ const Projects = () => {
         }
 
         .tech-tag:hover {
-          background: rgba(255, 255, 255, 0.1);
-          color: white;
+          background: rgba(59, 130, 246, 0.1);
+          color: #1f2937;
           transform: translateY(-3px);
           border-color: var(--accent-color);
         }
@@ -1032,12 +1033,12 @@ const Projects = () => {
           align-items: center;
           gap: 10px;
           padding: 12px 24px;
-          background: rgba(255, 255, 255, 0.05);
-          color: #cbd5e1;
+          background: rgba(59, 130, 246, 0.05);
+          color: #4b5563;
           text-decoration: none;
           border-radius: 12px;
           font-weight: 500;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(59, 130, 246, 0.1);
           transition: all 0.3s ease;
           position: relative;
           overflow: hidden;
@@ -1050,7 +1051,7 @@ const Projects = () => {
           background: var(--accent-color);
           color: white;
           transform: translateY(-5px);
-          box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
 
         .link-glow {
@@ -1082,11 +1083,11 @@ const Projects = () => {
         .divider-line {
           flex: 1;
           height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(100, 255, 218, 0.3), transparent);
+          background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.3), transparent);
         }
 
         .divider-icon {
-          color: #64ffda;
+          color: #3b82f6;
           font-size: 1.5rem;
           animation: spin 4s linear infinite;
         }
@@ -1104,7 +1105,7 @@ const Projects = () => {
         }
 
         .section-subtitle span {
-          background: linear-gradient(45deg, #64ffda, #60a5fa);
+          background: linear-gradient(45deg, #3b82f6, #0ea5e9);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -1113,13 +1114,13 @@ const Projects = () => {
         .subtitle-underline {
           width: 100px;
           height: 3px;
-          background: linear-gradient(90deg, #64ffda, transparent);
+          background: linear-gradient(90deg, #3b82f6, transparent);
           margin: 10px auto 0;
           border-radius: 2px;
         }
 
         .section-description {
-          color: #8892b0;
+          color: #6b7280;
           font-size: 1.1rem;
           max-width: 600px;
           margin: 0 auto;
@@ -1132,32 +1133,33 @@ const Projects = () => {
         }
 
         .mini-project-card {
-          background: rgba(17, 34, 64, 0.5);
+          background: white;
           padding: 30px;
           border-radius: 20px;
           backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(209, 213, 219, 0.6);
           display: flex;
           gap: 25px;
           align-items: flex-start;
           transition: all 0.3s ease;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
 
         .mini-project-card:hover {
           transform: translateY(-10px);
-          border-color: #64ffda;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+          border-color: #3b82f6;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
         }
 
         .mini-project-icon {
           width: 60px;
           height: 60px;
-          background: rgba(100, 255, 218, 0.1);
+          background: rgba(59, 130, 246, 0.1);
           border-radius: 15px;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #64ffda;
+          color: #3b82f6;
           font-size: 1.5rem;
           position: relative;
           flex-shrink: 0;
@@ -1167,7 +1169,7 @@ const Projects = () => {
           position: absolute;
           width: 100%;
           height: 100%;
-          background: #64ffda;
+          background: #3b82f6;
           border-radius: 15px;
           opacity: 0.1;
           filter: blur(10px);
@@ -1178,13 +1180,13 @@ const Projects = () => {
         }
 
         .mini-project-content h4 {
-          color: white;
+          color: #1f2937;
           margin: 0 0 10px 0;
           font-size: 1.3rem;
         }
 
         .mini-project-content p {
-          color: #8892b0;
+          color: #6b7280;
           font-size: 0.95rem;
           line-height: 1.6;
           margin: 0 0 15px 0;
@@ -1199,11 +1201,11 @@ const Projects = () => {
 
         .mini-tech-tag {
           padding: 6px 12px;
-          background: rgba(255, 255, 255, 0.05);
-          color: #cbd5e1;
+          background: rgba(59, 130, 246, 0.05);
+          color: #4b5563;
           border-radius: 15px;
           font-size: 0.8rem;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(59, 130, 246, 0.1);
         }
 
         .mini-project-links {
@@ -1218,17 +1220,17 @@ const Projects = () => {
           justify-content: center;
           width: 40px;
           height: 40px;
-          background: rgba(255, 255, 255, 0.05);
+          background: rgba(59, 130, 246, 0.05);
           border-radius: 50%;
-          color: #cbd5e1;
+          color: #4b5563;
           text-decoration: none;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(59, 130, 246, 0.1);
           transition: all 0.3s ease;
         }
 
         .mini-link:hover {
-          background: #64ffda;
-          color: #0a192f;
+          background: #3b82f6;
+          color: white;
           transform: scale(1.1);
         }
 

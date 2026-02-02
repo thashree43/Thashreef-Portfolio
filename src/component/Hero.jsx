@@ -1,1083 +1,837 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { gsap } from 'gsap';
-import { FaGithub, FaLinkedin, FaEnvelope, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { TextPlugin } from 'gsap/TextPlugin';
+import {
+  FaGithub, FaLinkedin, FaEnvelope, FaPhone, FaMapMarkerAlt,
+  FaReact, FaNodeJs, FaJs, FaDatabase
+} from 'react-icons/fa';
+import { SiTypescript, SiRedux, SiMongodb, SiExpress } from 'react-icons/si';
+import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
+gsap.registerPlugin(ScrollToPlugin);
 
+gsap.registerPlugin(ScrollTrigger, TextPlugin);
+
+// ─── CSS Injection ────────────────────────────────────────────────────────────
+const STYLES = `
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Share+Tech+Mono&display=swap');
+
+  :root {
+    --bg-deep:       #ffffff;
+    --bg-card:       rgba(255, 255, 255, 0.9);
+    --accent:        #3b82f6;
+    --accent-alt:    #06b6d4;
+    --accent-glow:   rgba(59, 130, 246, 0.15);
+    --accent-glow2:  rgba(6, 182, 212, 0.12);
+    --text-primary:  #1f2937;
+    --text-sub:      #6b7280;
+    --border:        rgba(209, 213, 219, 0.5);
+    --glass:         rgba(255, 255, 255, 0.7);
+    --shadow-light:  0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    --shadow-medium: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  .hero-section {
+    position: relative;
+    min-height: 100vh;
+    width: 100%;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    font-family: 'Sora', sans-serif;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── Matrix Canvas ── */
+  .hero-matrix-canvas {
+    position: absolute;
+    inset: 0;
+    opacity: 0.08;
+    z-index: 0;
+  }
+
+  /* ── Ambient Orbs ── */
+  .hero-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .hero-orb--1 {
+    width: 520px; height: 520px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+    top: -180px; left: -140px;
+  }
+  .hero-orb--2 {
+    width: 420px; height: 420px;
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.06) 0%, transparent 70%);
+    bottom: -100px; right: -120px;
+  }
+  .hero-orb--3 {
+    width: 260px; height: 260px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%);
+    top: 50%; left: 55%;
+  }
+
+  /* ── Grid Overlay ── */
+  .hero-grid-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: 0.02;
+    background-image:
+      linear-gradient(rgba(59, 130, 246, 0.3) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59, 130, 246, 0.3) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black 20%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black 20%, transparent 80%);
+  }
+
+  /* ── Floating Particles ── */
+  .hero-particle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* ── Code Lines ── */
+  .hero-code-line {
+    position: absolute;
+    height: 1px;
+    width: 160px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* ── Main Content Wrapper ── */
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 1140px;
+    padding: 60px 32px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+
+  /* ── Left Column ── */
+  .hero-left { display: flex; flex-direction: column; gap: 28px; }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    padding: 6px 14px;
+    border-radius: 30px;
+    border: 1px solid var(--border);
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    font-size: 12px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--accent);
+    opacity: 0;
+    box-shadow: var(--shadow-light);
+  }
+  .hero-badge .badge-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: badge-pulse 2s ease-in-out infinite;
+  }
+  @keyframes badge-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.5; }
+  }
+
+  .hero-title {
+    font-size: clamp(38px, 6vw, 64px);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -2px;
+    color: var(--text-primary);
+    opacity: 0;
+  }
+  .hero-title .highlight {
+    background: linear-gradient(135deg, var(--accent), var(--accent-alt));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-title .title-cursor {
+    display: inline-block;
+    width: 3px;
+    height: 0.85em;
+    background: var(--accent);
+    margin-left: 4px;
+    vertical-align: middle;
+    border-radius: 2px;
+  }
+
+  .hero-subtitle {
+    font-size: clamp(16px, 2.2vw, 20px);
+    font-weight: 300;
+    color: var(--text-sub);
+    letter-spacing: 0.4px;
+    min-height: 1.4em;
+    opacity: 0;
+  }
+  .hero-subtitle .sub-accent { color: var(--accent); font-weight: 600; }
+
+  .hero-description {
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--text-sub);
+    max-width: 440px;
+    opacity: 0;
+  }
+
+  /* ── Contact Chips ── */
+  .hero-contacts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .hero-contact-chip {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 13px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--glass);
+    backdrop-filter: blur(8px);
+    font-size: 12px;
+    color: var(--text-sub);
+    opacity: 0;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-light);
+  }
+  .hero-contact-chip:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+  }
+  .hero-contact-chip svg { color: var(--accent); font-size: 13px; }
+
+  /* ── Buttons ── */
+  .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  .hero-btn {
+    position: relative;
+    padding: 11px 24px;
+    border-radius: 10px;
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    overflow: hidden;
+    transition: transform 0.25s, box-shadow 0.3s;
+    opacity: 0;
+  }
+  .hero-btn:hover { transform: translateY(-2px); }
+
+  .hero-btn--primary {
+    background: linear-gradient(135deg, var(--accent), #2563eb);
+    color: white;
+    box-shadow: var(--shadow-medium);
+  }
+  .hero-btn--primary:hover {
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25);
+  }
+
+  .hero-btn--ghost {
+    background: white;
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-light);
+  }
+  .hero-btn--ghost:hover {
+    border-color: var(--accent);
+    background: rgba(59, 130, 246, 0.05);
+  }
+
+  .hero-btn--outline {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+  }
+  .hero-btn--outline:hover {
+    background: rgba(59, 130, 246, 0.08);
+  }
+
+  /* ── Social Row ── */
+  .hero-socials {
+    display: flex;
+    gap: 14px;
+  }
+  .hero-social-link {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: white;
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-sub);
+    text-decoration: none;
+    font-size: 16px;
+    opacity: 0;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-light);
+  }
+  .hero-social-link:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.15);
+  }
+
+  /* ── Right Column – Visual Panel ── */
+  .hero-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .hero-visual {
+    position: relative;
+    width: 340px;
+    height: 340px;
+  }
+
+  /* Central Avatar Ring */
+  .hero-avatar-ring {
+    position: absolute;
+    inset: 50%;
+    transform: translate(-50%, -50%);
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: white;
+    backdrop-filter: blur(12px);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 3;
+    opacity: 0;
+    box-shadow: var(--shadow-medium);
+  }
+  .hero-avatar-ring .avatar-initials {
+    font-size: 36px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent-alt));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -1px;
+  }
+  .hero-avatar-ring .avatar-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-sub);
+  }
+
+  /* Orbit Ring */
+  .hero-orbit-ring {
+    position: absolute;
+    inset: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 1px dashed var(--border);
+    pointer-events: none;
+    opacity: 0;
+  }
+  .hero-orbit-ring--1 { width: 240px; height: 240px; }
+  .hero-orbit-ring--2 { width: 310px; height: 310px; }
+
+  /* Tech Icon Orbiting ── */
+  .hero-tech-orbit {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+  }
+
+  .hero-tech-node {
+    position: absolute;
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: white;
+    backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    opacity: 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 2;
+    box-shadow: var(--shadow-light);
+  }
+  .hero-tech-node:hover {
+    transform: scale(1.2);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+    border-color: var(--accent);
+  }
+  .hero-tech-node .tech-tooltip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%; transform: translateX(-50%);
+    background: white;
+    border: 1px solid var(--border);
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 10px;
+    white-space: nowrap;
+    color: var(--text-sub);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    box-shadow: var(--shadow-light);
+  }
+  .hero-tech-node:hover .tech-tooltip { opacity: 1; }
+
+  /* ── Responsive ── */
+  @media (max-width: 780px) {
+    .hero-content {
+      grid-template-columns: 1fr;
+      text-align: center;
+      gap: 36px;
+    }
+    .hero-left { align-items: center; }
+    .hero-description { max-width: 100%; }
+    .hero-right { order: -1; }
+    .hero-visual { width: 260px; height: 260px; }
+    .hero-avatar-ring { width: 130px; height: 130px; }
+    .hero-orbit-ring--1 { width: 180px; height: 180px; }
+    .hero-orbit-ring--2 { width: 240px; height: 240px; }
+  }
+`;
+
+function useInjectStyles(css) {
+  useEffect(() => {
+    const tag = document.createElement('style');
+    tag.textContent = css;
+    document.head.appendChild(tag);
+    return () => document.head.removeChild(tag);
+  }, []);
+}
+
+// ─── Tech Data ─────────────────────────────────────────────────────────────
+const TECH_ICONS = [
+  { Icon: FaReact,       color: '#61dafb', label: 'React' },
+  { Icon: FaNodeJs,      color: '#339933', label: 'Node.js' },
+  { Icon: SiTypescript,  color: '#3178c6', label: 'TypeScript' },
+  { Icon: SiMongodb,     color: '#47a248', label: 'MongoDB' },
+  { Icon: SiExpress,     color: '#aaaaaa', label: 'Express' },
+  { Icon: SiRedux,       color: '#764abc', label: 'Redux' },
+  { Icon: FaJs,          color: '#f7df1e', label: 'JavaScript' },
+  { Icon: FaDatabase,    color: '#00b4d8', label: 'Database' },
+];
+
+const TECH_STACK_ROTATE = ['React.js', 'Node.js', 'TypeScript', 'MongoDB', 'Express.js'];
+
+// Positions (angle in degrees) for 8 icons on two rings
+const ORBIT_POSITIONS = [
+  { angle: 0,   ring: 120 },
+  { angle: 60,  ring: 120 },
+  { angle: 120, ring: 120 },
+  { angle: 180, ring: 120 },
+  { angle: 240, ring: 120 },
+  { angle: 300, ring: 120 },
+  { angle: 40,  ring: 155 },
+  { angle: 160, ring: 155 },
+];
+
+function getOrbitXY(angleDeg, radius, containerSize) {
+  const rad = (angleDeg * Math.PI) / 180;
+  const cx = containerSize / 2;
+  const cy = containerSize / 2;
+  const iconHalf = 22;
+  return {
+    left: cx + radius * Math.cos(rad) - iconHalf,
+    top:  cy + radius * Math.sin(rad) - iconHalf,
+  };
+}
+
+// ─── Component ─────────────────────────────────────────────────────────────
 const Hero = () => {
-    const heroRef = useRef(null);
-    const titleRef = useRef(null);
-    const subtitleRef = useRef(null);
-    const descriptionRef = useRef(null);
-    const contactGridRef = useRef(null);
-    const buttonsRef = useRef([]);
-    const socialLinksRef = useRef([]);
-    const profileCircleRef = useRef(null);
-    const orbitRingsRef = useRef([]);
-    const centralCircleRef = useRef(null);
-    const initialsRef = useRef(null);
-    const techBadgesRef = useRef([]);
-    const floatingElementsRef = useRef([]);
+  useInjectStyles(STYLES);
 
-    // GSAP Animations
-    useEffect(() => {
-        const ctx = gsap.context(() => {
-            // Background animation
-            gsap.fromTo(
-                heroRef.current,
-                { backgroundPosition: '0% 0%' },
-                {
-                    backgroundPosition: '100% 100%',
-                    duration: 20,
-                    repeat: -1,
-                    yoyo: true,
-                    ease: 'none'
-                }
-            );
+  const heroRef         = useRef(null);
+  const canvasRef       = useRef(null);
+  const badgeRef        = useRef(null);
+  const titleRef        = useRef(null);
+  const subtitleRef     = useRef(null);
+  const descriptionRef  = useRef(null);
+  const contactRefs     = useRef([]);
+  const btnRefs         = useRef([]);
+  const socialRefs      = useRef([]);
+  const avatarRef       = useRef(null);
+  const orbitRingRefs   = useRef([]);
+  const techOrbitRef    = useRef(null);
+  const techNodeRefs    = useRef([]);
+  const particleRefs    = useRef([]);
+  const codeLineRefs    = useRef([]);
 
-            // Title animation with typing effect
-            const titleText = "Hi, I'm Thashreef Khan";
-            const titleChars = titleText.split('');
-            const titleElements = titleRef.current.querySelectorAll('.title-char');
-            
-            gsap.from(titleElements, {
-                duration: 0.8,
-                y: 50,
-                opacity: 0,
-                stagger: 0.05,
-                ease: 'back.out(1.7)',
-                delay: 0.3
-            });
+  const matrixInterval  = useRef(null);
 
-            // Subtitle animation
-            gsap.from(subtitleRef.current, {
-                duration: 0.8,
-                y: 30,
-                opacity: 0,
-                delay: 1,
-                ease: 'power3.out'
-            });
+  // ── Smooth Scroll Function ──
+  const smoothScrollTo = useCallback((targetId) => {
+    const targetElement = document.getElementById(targetId);
 
-            // Description animation
-            gsap.from(descriptionRef.current, {
-                duration: 1,
-                y: 40,
-                opacity: 0,
-                delay: 1.2,
-                ease: 'power3.out'
-            });
+    if (!targetElement) {
+      console.warn(`Element with id "${targetId}" not found`);
+      return;
+    }
 
-            // Contact grid animation
-            gsap.from(contactGridRef.current.children, {
-                duration: 0.6,
-                x: -50,
-                opacity: 0,
-                stagger: 0.2,
-                delay: 1.5,
-                ease: 'power2.out'
-            });
+    window.history.pushState(null, '', `#${targetId}`);
 
-            // Buttons animation
-            gsap.from(buttonsRef.current, {
-                duration: 0.8,
-                y: 30,
-                opacity: 0,
-                stagger: 0.15,
-                delay: 1.8,
-                ease: 'back.out(1.7)'
-            });
+    gsap.to(window, {
+      duration: 1.2,
+      scrollTo: {
+        y: targetElement,
+        offsetY: 70,
+        autoKill: true,
+      },
+      ease: 'power3.inOut',
+    });
+  }, []);
 
-            // Social links animation
-            gsap.from(socialLinksRef.current, {
-                duration: 0.6,
-                scale: 0,
-                opacity: 0,
-                stagger: 0.2,
-                delay: 2.2,
-                ease: 'elastic.out(1, 0.5)'
-            });
+  // ── Matrix Rain ──
+  const startMatrix = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const fs = 13;
+    const cols = Math.floor(canvas.width / fs);
+    const drops = new Array(cols).fill(1);
+    const chars = '01アイウエオカキクケコサタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
 
-            // Profile circle entrance
-            gsap.from(profileCircleRef.current, {
-                duration: 1.2,
-                scale: 0,
-                rotation: 180,
-                opacity: 0,
-                delay: 0.5,
-                ease: 'back.out(1.7)'
-            });
-
-            // Orbit rings animation
-            orbitRingsRef.current.forEach((ring, i) => {
-                if (ring) {
-                    gsap.from(ring, {
-                        duration: 1.5,
-                        scale: 0,
-                        opacity: 0,
-                        delay: 0.8 + (i * 0.2),
-                        ease: 'power3.out'
-                    });
-                }
-            });
-
-            // Central circle animation
-            gsap.from(centralCircleRef.current, {
-                duration: 1,
-                scale: 0,
-                opacity: 0,
-                delay: 1.2,
-                ease: 'elastic.out(1, 0.5)'
-            });
-
-            // Initials animation
-            gsap.from(initialsRef.current, {
-                duration: 0.8,
-                scale: 0,
-                opacity: 0,
-                delay: 1.5,
-                ease: 'back.out(1.7)'
-            });
-
-            // Tech badges staggered animation
-            techBadgesRef.current.forEach((badge, i) => {
-                if (badge) {
-                    gsap.from(badge, {
-                        duration: 0.6,
-                        scale: 0,
-                        opacity: 0,
-                        rotation: 360,
-                        delay: 1.8 + (i * 0.15),
-                        ease: 'elastic.out(1, 0.5)'
-                    });
-                }
-            });
-
-            // Floating elements animation
-            floatingElementsRef.current.forEach((element, i) => {
-                if (element) {
-                    gsap.to(element, {
-                        y: -20,
-                        duration: 2 + Math.random(),
-                        repeat: -1,
-                        yoyo: true,
-                        ease: 'sine.inOut',
-                        delay: i * 0.5
-                    });
-                }
-            });
-
-            // Continuous animations
-            gsap.to('.orbit-ring', {
-                rotation: 360,
-                duration: 40,
-                repeat: -1,
-                ease: 'none'
-            });
-
-            gsap.to('.tech-badge-wrapper', {
-                y: -10,
-                duration: 3,
-                repeat: -1,
-                yoyo: true,
-                ease: 'sine.inOut',
-                stagger: 0.5
-            });
-
-            // Button hover animations
-            buttonsRef.current.forEach(button => {
-                if (button) {
-                    button.addEventListener('mouseenter', () => {
-                        gsap.to(button, {
-                            scale: 1.05,
-                            duration: 0.3,
-                            ease: 'power2.out'
-                        });
-                    });
-                    button.addEventListener('mouseleave', () => {
-                        gsap.to(button, {
-                            scale: 1,
-                            duration: 0.3,
-                            ease: 'power2.out'
-                        });
-                    });
-                }
-            });
-
-            // Social links hover animations
-            socialLinksRef.current.forEach(link => {
-                if (link) {
-                    link.addEventListener('mouseenter', () => {
-                        gsap.to(link, {
-                            scale: 1.2,
-                            rotation: 360,
-                            duration: 0.5,
-                            ease: 'power2.out'
-                        });
-                    });
-                    link.addEventListener('mouseleave', () => {
-                        gsap.to(link, {
-                            scale: 1,
-                            rotation: 0,
-                            duration: 0.3,
-                            ease: 'power2.out'
-                        });
-                    });
-                }
-            });
-
-            // Tech badges hover animations
-            techBadgesRef.current.forEach(badge => {
-                if (badge) {
-                    const wrapper = badge.closest('.tech-badge-wrapper');
-                    badge.addEventListener('mouseenter', () => {
-                        gsap.to(wrapper, {
-                            scale: 1.2,
-                            zIndex: 10,
-                            duration: 0.3,
-                            ease: 'power2.out'
-                        });
-                        gsap.to(badge.querySelector('.badge-glow'), {
-                            opacity: 0.8,
-                            duration: 0.3
-                        });
-                    });
-                    badge.addEventListener('mouseleave', () => {
-                        gsap.to(wrapper, {
-                            scale: 1,
-                            zIndex: 2,
-                            duration: 0.3,
-                            ease: 'power2.out'
-                        });
-                        gsap.to(badge.querySelector('.badge-glow'), {
-                            opacity: 0.6,
-                            duration: 0.3
-                        });
-                    });
-                }
-            });
-
-        }, heroRef);
-
-        return () => ctx.revert();
-    }, []);
-
-    // Create floating elements
-    useEffect(() => {
-        const elements = [];
-        for (let i = 0; i < 8; i++) {
-            elements.push({
-                id: i,
-                size: Math.random() * 20 + 5,
-                x: Math.random() * 100,
-                y: Math.random() * 100,
-                delay: Math.random() * 2
-            });
-        }
-        floatingElementsRef.current = elements;
-    }, []);
-
-    const FloatingElement = ({ element, index }) => {
-        return (
-            <div 
-                className={`floating-element floating-element-${index}`}
-                style={{
-                    left: `${element.x}%`,
-                    top: `${element.y}%`,
-                    width: `${element.size}px`,
-                    height: `${element.size}px`,
-                    animationDelay: `${element.delay}s`
-                }}
-                ref={el => floatingElementsRef.current[index] = el}
-            />
-        );
+    const draw = () => {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.font = `${fs}px "Share Tech Mono", monospace`;
+      for (let i = 0; i < drops.length; i++) {
+        const ch = chars[Math.floor(Math.random() * chars.length)];
+        const alpha = Math.random() * 0.25 + 0.1;
+        ctx.fillStyle = `rgba(59, 130, 246, ${alpha})`;
+        ctx.fillText(ch, i * fs, drops[i] * fs);
+        if (drops[i] * fs > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+      }
     };
+    draw();
+    matrixInterval.current = setInterval(draw, 55);
+  }, []);
 
-    const titleText = "Hi, I'm Thashreef Khan";
-    const titleChars = titleText.split('');
+  // ── Main GSAP Timeline ──
+  useEffect(() => {
+    startMatrix();
 
-    const techBadges = [
-        { name: 'React', class: 'react-badge', color: '#61dafb' },
-        { name: 'JavaScript', class: 'js-badge', color: '#f7df1e' },
-        { name: 'Node.js', class: 'node-badge', color: '#339933' },
-        { name: 'MongoDB', class: 'mongo-badge', color: '#89cff0' },
-        { name: 'TypeScript', class: 'ts-badge', color: '#3178c6' },
-        { name: 'Redux', class: 'redux-badge', color: '#764abc' }
-    ];
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline();
 
-    return (
-        <section id="home" className="hero" ref={heroRef}>
-            {/* Floating Background Elements */}
-            <div className="floating-background">
-                {floatingElementsRef.current.map((element, index) => (
-                    <FloatingElement key={element.id} element={element} index={index} />
-                ))}
+      // Badge
+      tl.to(badgeRef.current, { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, 0.2);
+
+      // Title reveal
+      tl.to(titleRef.current, { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out' }, 0.5);
+
+      // Typing cursor blink after title appears
+      tl.to('.title-cursor', { opacity: 0, duration: 0.4, repeat: 3, yoyo: true, ease: 'steps(1)' }, 1.4);
+
+      // Subtitle
+      tl.to(subtitleRef.current, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, 0.85);
+
+      // Rotating tech label
+      let idx = 0;
+      const rotateTech = () => {
+        idx = (idx + 1) % TECH_STACK_ROTATE.length;
+        gsap.to(subtitleRef.current, {
+          opacity: 0, duration: 0.3,
+          onComplete: () => {
+            const el = subtitleRef.current;
+            if (el) {
+              el.innerHTML = `Full Stack <span class="sub-accent">${TECH_STACK_ROTATE[idx]}</span> Developer`;
+              gsap.to(el, { opacity: 1, duration: 0.4 });
+            }
+            setTimeout(rotateTech, 2600);
+          }
+        });
+      };
+      setTimeout(rotateTech, 3200);
+
+      // Description
+      tl.to(descriptionRef.current, { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out' }, 1.1);
+
+      // Contact chips
+      contactRefs.current.forEach((el, i) => {
+        if (el) tl.to(el, { opacity: 1, y: 0, duration: 0.6, ease: 'back.out(1.6)' }, 1.35 + i * 0.1);
+      });
+
+      // Buttons
+      btnRefs.current.forEach((el, i) => {
+        if (el) tl.to(el, { opacity: 1, y: 0, duration: 0.7, ease: 'back.out(1.5)' }, 1.7 + i * 0.12);
+      });
+
+      // Socials
+      socialRefs.current.forEach((el, i) => {
+        if (el) tl.to(el, { opacity: 1, scale: 1, duration: 0.5, ease: 'back.out(1.7)' }, 2.1 + i * 0.1);
+      });
+
+      // Avatar ring
+      tl.to(avatarRef.current, { opacity: 1, scale: 1, duration: 1, ease: 'power4.out' }, 0.3);
+
+      // Orbit rings
+      orbitRingRefs.current.forEach((el, i) => {
+        if (el) tl.to(el, { opacity: 1, duration: 1.2, ease: 'power2.out' }, 0.6 + i * 0.2);
+      });
+
+      // Tech orbit container + nodes
+      tl.to(techOrbitRef.current, { opacity: 1, duration: 0.8 }, 0.8);
+      techNodeRefs.current.forEach((el, i) => {
+        if (el) tl.to(el, { opacity: 1, duration: 0.6, ease: 'back.out(1.7)' }, 1.0 + i * 0.09);
+      });
+
+      // Code lines
+      codeLineRefs.current.forEach((el, i) => {
+        if (el) {
+          gsap.fromTo(el,
+            { opacity: 0, x: -80 },
+            { opacity: 0.15, x: 0, duration: 2.5, delay: 0.5 + i * 0.3, ease: 'power2.out', repeat: -1, yoyo: true, repeatDelay: 2.5 }
+          );
+        }
+      });
+
+      // Floating particles
+      particleRefs.current.forEach((el, i) => {
+        if (el) {
+          gsap.to(el, {
+            x: `random(-60, 60)`,
+            y: `random(-60, 60)`,
+            rotation: `random(0, 360)`,
+            duration: 4 + Math.random() * 3,
+            repeat: -1, yoyo: true,
+            ease: 'sine.inOut',
+            delay: i * 0.08
+          });
+        }
+      });
+
+      // Slow orbit rings continuous rotation
+      orbitRingRefs.current.forEach((el, i) => {
+        if (el) {
+          gsap.to(el, { rotation: 360, duration: 40 + i * 15, repeat: -1, ease: 'none' });
+        }
+      });
+
+      // Parallax on mouse move
+      const onMouseMove = (e) => {
+        const nx = (e.clientX / window.innerWidth - 0.5) * 2;
+        const ny = (e.clientY / window.innerHeight - 0.5) * 2;
+        gsap.to(avatarRef.current, { x: nx * 8, y: ny * 8, duration: 0.8, ease: 'power2.out' });
+        gsap.to(orbitRingRefs.current, { x: nx * 5, y: ny * 5, duration: 1, ease: 'power2.out' });
+      };
+      heroRef.current?.addEventListener('mousemove', onMouseMove);
+
+    }, heroRef);
+
+    return () => {
+      ctx.revert();
+      if (matrixInterval.current) clearInterval(matrixInterval.current);
+    };
+  }, [startMatrix]);
+
+  // ── Helpers for initial hidden state (for GSAP to animate FROM) ──
+  const hiddenSlide = { opacity: 0, transform: 'translateY(18px)' };
+  const hiddenScale = { opacity: 0, transform: 'scale(0.6)' };
+  const CONTAINER = 340;
+
+  // Button configuration
+  const heroButtons = [
+    { label: 'View Projects', cls: 'hero-btn--primary', href: '#projects' },
+    { label: 'Contact Me', cls: 'hero-btn--ghost', href: '#contact' },
+  ];
+
+  return (
+    <section className="hero-section" ref={heroRef}>
+      {/* Matrix Canvas */}
+      <canvas className="hero-matrix-canvas" ref={canvasRef} />
+
+      {/* Ambient Orbs */}
+      <div className="hero-orb hero-orb--1" />
+      <div className="hero-orb hero-orb--2" />
+      <div className="hero-orb hero-orb--3" />
+
+      {/* Grid */}
+      <div className="hero-grid-overlay" />
+
+      {/* Floating code lines */}
+      {[...Array(7)].map((_, i) => (
+        <div
+          key={`code-${i}`}
+          className="hero-code-line"
+          ref={el => { codeLineRefs.current[i] = el; }}
+          style={{ top: `${12 + i * 13}%`, left: `${5 + i * 4}%` }}
+        />
+      ))}
+
+      {/* Floating particles */}
+      {[...Array(28)].map((_, i) => (
+        <div
+          key={`p-${i}`}
+          className="hero-particle"
+          ref={el => { particleRefs.current[i] = el; }}
+          style={{
+            left:   `${Math.random() * 100}%`,
+            top:    `${Math.random() * 100}%`,
+            width:  `${Math.random() * 3 + 1.5}px`,
+            height: `${Math.random() * 3 + 1.5}px`,
+            background: i % 3 === 0 ? 'rgba(59, 130, 246, 0.25)' : 'rgba(6, 182, 212, 0.2)',
+            borderRadius: '50%',
+          }}
+        />
+      ))}
+
+      {/* ── Main Grid ── */}
+      <div className="hero-content">
+
+        {/* LEFT */}
+        <div className="hero-left">
+
+          {/* Badge */}
+          <div className="hero-badge" ref={badgeRef} style={{ opacity: 0, transform: 'translateY(12px)' }}>
+            <span className="badge-dot" />
+            Available for Work
+          </div>
+
+          {/* Title */}
+          <h1 className="hero-title" ref={titleRef} style={{ opacity: 0, transform: 'translateY(18px)' }}>
+            Hi, I'm <span className="highlight">Thashreef</span>
+            <span className="title-cursor" />
+          </h1>
+
+          {/* Subtitle */}
+          <p className="hero-subtitle" ref={subtitleRef} style={{ opacity: 0, transform: 'translateY(12px)' }}>
+            Full Stack <span className="sub-accent">{TECH_STACK_ROTATE[0]}</span> Developer
+          </p>
+
+          {/* Description */}
+          <p className="hero-description" ref={descriptionRef} style={hiddenSlide}>
+            Crafting digital experiences with clean code and innovative solutions.
+            Specializing in full-stack development with modern technologies.
+          </p>
+
+          {/* Contact Chips */}
+          <div className="hero-contacts">
+            {[
+              { Icon: FaEnvelope, text: 'thashreefkhan4@gmail.com' },
+              { Icon: FaPhone,    text: '9345826343' },
+              { Icon: FaMapMarkerAlt, text: 'Bengaluru, Karnataka' },
+            ].map((c, i) => (
+              <div
+                key={i}
+                className="hero-contact-chip"
+                ref={el => { contactRefs.current[i] = el; }}
+                style={{ opacity: 0, transform: 'translateY(10px)' }}
+              >
+                <c.Icon /> {c.text}
+              </div>
+            ))}
+          </div>
+
+          {/* Buttons */}
+          <div className="hero-buttons">
+            {heroButtons.map((b, i) => (
+              <button
+                key={i}
+                className={`hero-btn ${b.cls}`}
+                ref={el => { btnRefs.current[i] = el; }}
+                style={{ opacity: 0, transform: 'translateY(16px)' }}
+                onClick={() => smoothScrollTo(b.href.replace('#', ''))}
+              >
+                {b.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Socials */}
+          <div className="hero-socials">
+            {[
+              { Icon: FaGithub, href: 'https://github.com/thashree43', label: 'GitHub' },
+              { Icon: FaLinkedin, href: 'https://www.linkedin.com/in/thashreef-khan-248b86301/', label: 'LinkedIn' },
+            ].map((s, i) => (
+              <a
+                key={i}
+                href={s.href}
+                aria-label={s.label}
+                className="hero-social-link"
+                target="_blank"
+                rel="noopener noreferrer"
+                ref={el => { socialRefs.current[i] = el; }}
+                style={{ opacity: 0, transform: 'scale(0.5)' }}
+              >
+                <s.Icon />
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* RIGHT – Visual */}
+        <div className="hero-right">
+          <div className="hero-visual">
+
+            {/* Orbit rings */}
+            <div className="hero-orbit-ring hero-orbit-ring--1" ref={el => { orbitRingRefs.current[0] = el; }} style={{ opacity: 0 }} />
+            <div className="hero-orbit-ring hero-orbit-ring--2" ref={el => { orbitRingRefs.current[1] = el; }} style={{ opacity: 0 }} />
+
+            {/* Tech nodes orbiting */}
+            <div className="hero-tech-orbit" ref={techOrbitRef} style={{ opacity: 0 }}>
+              {TECH_ICONS.map((tech, i) => {
+                const pos = ORBIT_POSITIONS[i];
+                const { left, top } = getOrbitXY(pos.angle, pos.ring, CONTAINER);
+                return (
+                  <div
+                    key={tech.label}
+                    className="hero-tech-node"
+                    ref={el => { techNodeRefs.current[i] = el; }}
+                    style={{ left, top, opacity: 0 }}
+                  >
+                    <tech.Icon color={tech.color} />
+                    <span className="tech-tooltip">{tech.label}</span>
+                  </div>
+                );
+              })}
             </div>
 
-            <div className="container">
-                <div className="hero-content">
-                    <div className="hero-text">
-                        <h1 className="hero-title" ref={titleRef}>
-                            {titleChars.map((char, index) => (
-                                <span key={index} className="title-char">
-                                    {char === ' ' ? '\u00A0' : char}
-                                </span>
-                            ))}
-                            <span className="title-cursor"></span>
-                        </h1>
-                        
-                        <h2 className="hero-subtitle fade-in" ref={subtitleRef}>
-                            Full Stack Developer (Frontend & Backend)
-                        </h2>
-                        
-                        <p className="hero-description fade-in" ref={descriptionRef}>
-                            Building responsive, scalable, and high-performance web applications using Mongo DB,
-                            Express.js, React.js and Node.js. Passionate about delivering high-quality,
-                            user-friendly software solutions.
-                        </p>
-
-                        <div className="contact-info-grid fade-in" ref={contactGridRef}>
-                            <div className="contact-item">
-                                <FaEnvelope className="contact-icon" />
-                                <span>thashreefkhan4@gmail.com</span>
-                            </div>
-                            <div className="contact-item">
-                                <FaPhone className="contact-icon" />
-                                <span>9345826343</span>
-                            </div>
-                            <div className="contact-item">
-                                <FaMapMarkerAlt className="contact-icon" />
-                                <span>Bangaluru, Karnataka.</span>
-                            </div>
-                        </div>
-
-                        <div className="hero-buttons fade-in">
-                            <a 
-                                href="#projects" 
-                                className="btn"
-                                ref={el => buttonsRef.current[0] = el}
-                            >
-                                View Projects
-                            </a>
-                            <a 
-                                href="#contact" 
-                                className="btn btn-outline"
-                                ref={el => buttonsRef.current[1] = el}
-                            >
-                                Contact Me
-                            </a>
-                            <a 
-                                href="./Thashreef_Khan.pdf" 
-                                download 
-                                className="btn btn-outline"
-                                ref={el => buttonsRef.current[2] = el}
-                            >
-                                Download Resume
-                            </a>
-                        </div>
-
-                        <div className="social-links fade-in">
-                            <a 
-                                href="https://github.com/thashree43" 
-                                target="_blank" 
-                                rel="noopener noreferrer" 
-                                title="GitHub"
-                                ref={el => socialLinksRef.current[0] = el}
-                            >
-                                <FaGithub />
-                            </a>
-                            <a 
-                                href="https://www.linkedin.com/in/thashreef-khan-248b86301/" 
-                                target="_blank" 
-                                rel="noopener noreferrer" 
-                                title="LinkedIn"
-                                ref={el => socialLinksRef.current[1] = el}
-                            >
-                                <FaLinkedin />
-                            </a>
-                        </div>
-                    </div>
-
-                    <div className="hero-image">
-                        <div className="profile-circle" ref={profileCircleRef}>
-                            {/* Orbit rings */}
-                            <div 
-                                className="orbit-ring orbit-1"
-                                ref={el => orbitRingsRef.current[0] = el}
-                            ></div>
-                            <div 
-                                className="orbit-ring orbit-2"
-                                ref={el => orbitRingsRef.current[1] = el}
-                            ></div>
-                            <div 
-                                className="orbit-ring orbit-3"
-                                ref={el => orbitRingsRef.current[2] = el}
-                            ></div>
-                            
-                            {/* Central circle with initials */}
-                            <div className="central-circle" ref={centralCircleRef}>
-                                <div className="inner-glow"></div>
-                                <span className="initials" ref={initialsRef}>TK</span>
-                                <div className="center-pulse"></div>
-                            </div>
-                            
-                            {/* Tech badges with new design */}
-                            <div className="tech-badge-container">
-                                {techBadges.map((badge, index) => (
-                                    <div 
-                                        key={index} 
-                                        className={`tech-badge-wrapper ${badge.class}`}
-                                    >
-                                        <div 
-                                            className={`tech-badge ${badge.name.toLowerCase()}`}
-                                            ref={el => techBadgesRef.current[index] = el}
-                                        >
-                                            <span className="badge-text">{badge.name}</span>
-                                            <div className="badge-glow"></div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            {/* Central Avatar */}
+            <div className="hero-avatar-ring" ref={avatarRef} style={hiddenScale}>
+              <span className="avatar-initials">TK</span>
+              <span className="avatar-label">Developer</span>
             </div>
-            
-            <style jsx>{`
-                .hero {
-                    min-height: 100vh;
-                    display: flex;
-                    align-items: center;
-                    padding-top: 80px;
-                    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-                    background-size: 400% 400%;
-                    color: white;
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                .floating-background {
-                    position: absolute;
-                    width: 100%;
-                    height: 100%;
-                    top: 0;
-                    left: 0;
-                    pointer-events: none;
-                    overflow: hidden;
-                }
-
-                .floating-element {
-                    position: absolute;
-                    background: rgba(96, 165, 250, 0.1);
-                    border: 1px solid rgba(96, 165, 250, 0.2);
-                    border-radius: 50%;
-                    filter: blur(1px);
-                    opacity: 0.3;
-                    animation: float 6s ease-in-out infinite;
-                }
-
-                @keyframes float {
-                    0%, 100% { transform: translateY(0) rotate(0deg); }
-                    50% { transform: translateY(-20px) rotate(180deg); }
-                }
-
-                .container {
-                    position: relative;
-                    z-index: 2;
-                }
-                
-                .hero-content {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 4rem;
-                    align-items: center;
-                }
-                
-                .hero-title {
-                    font-size: 3.5rem;
-                    margin-bottom: 1rem;
-                    line-height: 1.2;
-                    position: relative;
-                    display: inline-block;
-                }
-
-                .title-char {
-                    display: inline-block;
-                    opacity: 1;
-                    color: white;
-                }
-
-                .title-char:nth-child(7),
-                .title-char:nth-child(8),
-                .title-char:nth-child(9) {
-                    color: #60a5fa;
-                    background: linear-gradient(90deg, #60a5fa, #3b82f6);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    background-clip: text;
-                }
-
-                .title-cursor {
-                    display: inline-block;
-                    width: 3px;
-                    height: 3.5rem;
-                    background: #60a5fa;
-                    margin-left: 5px;
-                    animation: blink 1s infinite;
-                    vertical-align: bottom;
-                }
-
-                @keyframes blink {
-                    0%, 100% { opacity: 1; }
-                    50% { opacity: 0; }
-                }
-                
-                .hero-subtitle {
-                    font-size: 1.5rem;
-                    color: #cbd5e1;
-                    margin-bottom: 1.5rem;
-                    font-weight: 400;
-                }
-                
-                .hero-description {
-                    font-size: 1.1rem;
-                    margin-bottom: 2rem;
-                    max-width: 500px;
-                    color: #94a3b8;
-                }
-                
-                .contact-info-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                    gap: 1rem;
-                    margin-bottom: 2rem;
-                    background: rgba(30, 41, 59, 0.5);
-                    padding: 1.5rem;
-                    border-radius: 10px;
-                    backdrop-filter: blur(10px);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                }
-                
-                .contact-item {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.75rem;
-                    color: #cbd5e1;
-                }
-                
-                .contact-icon {
-                    color: #60a5fa;
-                    font-size: 1.2rem;
-                    transition: transform 0.3s ease;
-                }
-
-                .contact-item:hover .contact-icon {
-                    transform: scale(1.2);
-                }
-                
-                .hero-buttons {
-                    display: flex;
-                    gap: 1rem;
-                    margin-bottom: 2rem;
-                    flex-wrap: wrap;
-                }
-                
-                .btn {
-                    padding: 12px 30px;
-                    background: linear-gradient(45deg, #3b82f6, #1d4ed8);
-                    color: white;
-                    text-decoration: none;
-                    border-radius: 8px;
-                    font-weight: 600;
-                    font-size: 1rem;
-                    border: none;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                .btn:hover {
-                    transform: translateY(-3px);
-                    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
-                }
-
-                .btn::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: -100%;
-                    width: 100%;
-                    height: 100%;
-                    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-                    transition: left 0.6s ease;
-                }
-
-                .btn:hover::before {
-                    left: 100%;
-                }
-
-                .btn-outline {
-                    background: transparent;
-                    border: 2px solid #3b82f6;
-                    color: #3b82f6;
-                }
-
-                .btn-outline:hover {
-                    background: #3b82f6;
-                    color: white;
-                }
-                
-                .social-links {
-                    display: flex;
-                    gap: 1.5rem;
-                }
-                
-                .social-links a {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 50px;
-                    height: 50px;
-                    background: rgba(255, 255, 255, 0.1);
-                    border-radius: 50%;
-                    color: white;
-                    font-size: 1.5rem;
-                    transition: all 0.3s ease;
-                    backdrop-filter: blur(10px);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                .social-links a::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: -100%;
-                    width: 100%;
-                    height: 100%;
-                    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-                    transition: left 0.6s ease;
-                }
-
-                .social-links a:hover::before {
-                    left: 100%;
-                }
-                
-                .social-links a:hover {
-                    background: #3b82f6;
-                    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
-                }
-                
-                /* Profile Circle - New Design */
-                .profile-circle {
-                    width: 500px;
-                    height: 500px;
-                    position: relative;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    margin: 0 auto;
-                }
-                
-                /* Orbit Rings */
-                .orbit-ring {
-                    position: absolute;
-                    border-radius: 50%;
-                    border: 1px dashed rgba(96, 165, 250, 0.15);
-                }
-                
-                .orbit-1 {
-                    width: 380px;
-                    height: 380px;
-                }
-                
-                .orbit-2 {
-                    width: 440px;
-                    height: 440px;
-                }
-                
-                .orbit-3 {
-                    width: 500px;
-                    height: 500px;
-                    border-color: rgba(59, 130, 246, 0.1);
-                }
-                
-                /* Central Circle */
-                .central-circle {
-                    width: 250px;
-                    height: 250px;
-                    background: linear-gradient(145deg, #1e293b, #0f172a);
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    position: relative;
-                    z-index: 2;
-                    box-shadow: 
-                        inset 0 5px 15px rgba(0, 0, 0, 0.3),
-                        0 20px 40px rgba(0, 0, 0, 0.4);
-                    border: 1px solid rgba(255, 255, 255, 0.05);
-                }
-                
-                .inner-glow {
-                    position: absolute;
-                    width: 100%;
-                    height: 100%;
-                    border-radius: 50%;
-                    background: radial-gradient(circle at 30% 30%, rgba(96, 165, 250, 0.2), transparent 70%);
-                    animation: glowPulse 4s ease-in-out infinite;
-                }
-                
-                .center-pulse {
-                    position: absolute;
-                    width: 100%;
-                    height: 100%;
-                    border-radius: 50%;
-                    border: 2px solid rgba(96, 165, 250, 0.1);
-                    animation: pulse 3s ease-in-out infinite;
-                }
-                
-                .initials {
-                    font-size: 4rem;
-                    font-weight: 700;
-                    background: linear-gradient(45deg, #60a5fa, #3b82f6);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    background-clip: text;
-                    text-shadow: 0 0 30px rgba(96, 165, 250, 0.3);
-                    position: relative;
-                    z-index: 3;
-                }
-                
-                @keyframes glowPulse {
-                    0%, 100% {
-                        opacity: 0.5;
-                    }
-                    50% {
-                        opacity: 0.8;
-                    }
-                }
-                
-                @keyframes pulse {
-                    0% {
-                        transform: scale(1);
-                        opacity: 1;
-                    }
-                    100% {
-                        transform: scale(1.3);
-                        opacity: 0;
-                    }
-                }
-                
-                /* Tech Badges - New Design */
-                .tech-badge-container {
-                    position: absolute;
-                    width: 100%;
-                    height: 100%;
-                }
-                
-                .tech-badge-wrapper {
-                    position: absolute;
-                    transform-origin: center;
-                }
-                
-                /* Badge positions in circular orbit */
-                .react-badge { 
-                    top: 15%; 
-                    left: 50%; 
-                    transform: translateX(-50%);
-                }
-                .js-badge { 
-                    top: 25%; 
-                    right: 20%; 
-                }
-                .node-badge { 
-                    top: 50%; 
-                    right: 10%; 
-                }
-                .mongo-badge { 
-                    bottom: 25%; 
-                    right: 20%; 
-                }
-                .ts-badge { 
-                    bottom: 15%; 
-                    left: 50%; 
-                    transform: translateX(-50%);
-                }
-                .redux-badge { 
-                    bottom: 25%; 
-                    left: 20%; 
-                }
-                
-                .tech-badge {
-                    padding: 12px 24px;
-                    border-radius: 20px;
-                    font-weight: 600;
-                    font-size: 0.95rem;
-                    position: relative;
-                    z-index: 2;
-                    transform-style: preserve-3d;
-                    transition: all 0.3s ease;
-                    backdrop-filter: blur(10px);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    cursor: pointer;
-                    overflow: hidden;
-                }
-                
-                .badge-text {
-                    position: relative;
-                    z-index: 2;
-                    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-                    letter-spacing: 0.5px;
-                }
-                
-                .badge-glow {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    border-radius: 20px;
-                    z-index: 1;
-                    opacity: 0.6;
-                    filter: blur(15px);
-                    transition: all 0.3s ease;
-                }
-                
-                /* Individual badge styles with glow effects */
-                .tech-badge.react {
-                    background: rgba(97, 218, 251, 0.15);
-                    color: #61dafb;
-                    box-shadow: 
-                        0 5px 15px rgba(97, 218, 251, 0.2),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-                }
-                .tech-badge.react .badge-glow {
-                    background: linear-gradient(45deg, #61dafb, transparent);
-                }
-                
-                .tech-badge.javascript {
-                    background: rgba(247, 223, 30, 0.15);
-                    color: #f7df1e;
-                    box-shadow: 
-                        0 5px 15px rgba(247, 223, 30, 0.2),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-                }
-                .tech-badge.javascript .badge-glow {
-                    background: linear-gradient(45deg, #f7df1e, transparent);
-                }
-                
-                .tech-badge.node {
-                    background: rgba(51, 153, 51, 0.15);
-                    color: #339933;
-                    box-shadow: 
-                        0 5px 15px rgba(51, 153, 51, 0.2),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-                }
-                .tech-badge.node .badge-glow {
-                    background: linear-gradient(45deg, #339933, transparent);
-                }
-                
-                .tech-badge.mongodb {
-                    background: rgba(51, 103, 145, 0.15);
-                    color: #89cff0;
-                    box-shadow: 
-                        0 5px 15px rgba(51, 103, 145, 0.2),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-                }
-                .tech-badge.mongodb .badge-glow {
-                    background: linear-gradient(45deg, #336791, transparent);
-                }
-                
-                .tech-badge.typescript {
-                    background: rgba(49, 120, 198, 0.15);
-                    color: #3178c6;
-                    box-shadow: 
-                        0 5px 15px rgba(49, 120, 198, 0.2),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-                }
-                .tech-badge.typescript .badge-glow {
-                    background: linear-gradient(45deg, #3178c6, transparent);
-                }
-                
-                .tech-badge.redux {
-                    background: rgba(118, 74, 188, 0.15);
-                    color: #764abc;
-                    box-shadow: 
-                        0 5px 15px rgba(118, 74, 188, 0.2),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-                }
-                .tech-badge.redux .badge-glow {
-                    background: linear-gradient(45deg, #764abc, transparent);
-                }
-                
-                /* Responsive Design */
-                @media (max-width: 1200px) {
-                    .profile-circle {
-                        width: 450px;
-                        height: 450px;
-                    }
-                    
-                    .central-circle {
-                        width: 220px;
-                        height: 220px;
-                    }
-                    
-                    .initials {
-                        font-size: 3.5rem;
-                    }
-                }
-                
-                @media (max-width: 992px) {
-                    .hero-content {
-                        grid-template-columns: 1fr;
-                        text-align: center;
-                        gap: 3rem;
-                    }
-                    
-                    .hero-title {
-                        font-size: 2.5rem;
-                    }
-                    
-                    .hero-buttons {
-                        justify-content: center;
-                    }
-                    
-                    .social-links {
-                        justify-content: center;
-                    }
-                    
-                    .hero-description {
-                        margin: 0 auto 2rem;
-                    }
-                    
-                    .profile-circle {
-                        width: 400px;
-                        height: 400px;
-                        margin: 2rem auto;
-                    }
-                    
-                    .central-circle {
-                        width: 200px;
-                        height: 200px;
-                    }
-                    
-                    .initials {
-                        font-size: 3rem;
-                    }
-                    
-                    .tech-badge {
-                        padding: 10px 20px;
-                        font-size: 0.9rem;
-                    }
-                    
-                    .orbit-1 {
-                        width: 320px;
-                        height: 320px;
-                    }
-                    
-                    .orbit-2 {
-                        width: 370px;
-                        height: 370px;
-                    }
-                    
-                    .orbit-3 {
-                        width: 420px;
-                        height: 420px;
-                    }
-                }
-                
-                @media (max-width: 768px) {
-                    .profile-circle {
-                        width: 350px;
-                        height: 350px;
-                    }
-                    
-                    .central-circle {
-                        width: 180px;
-                        height: 180px;
-                    }
-                    
-                    .initials {
-                        font-size: 2.5rem;
-                    }
-                    
-                    .tech-badge {
-                        padding: 8px 16px;
-                        font-size: 0.85rem;
-                    }
-                    
-                    .orbit-1 {
-                        width: 280px;
-                        height: 280px;
-                    }
-                    
-                    .orbit-2 {
-                        width: 320px;
-                        height: 320px;
-                    }
-                    
-                    .orbit-3 {
-                        width: 360px;
-                        height: 360px;
-                    }
-                }
-                
-                @media (max-width: 576px) {
-                    .hero {
-                        padding-top: 60px;
-                    }
-
-                    .hero-title {
-                        font-size: 2rem;
-                    }
-                    
-                    .hero-subtitle {
-                        font-size: 1.2rem;
-                    }
-                    
-                    .hero-buttons {
-                        flex-direction: column;
-                        align-items: center;
-                        gap: 0.75rem;
-                    }
-                    
-                    .profile-circle {
-                        width: 320px;
-                        height: 320px;
-                    }
-                    
-                    .central-circle {
-                        width: 160px;
-                        height: 160px;
-                    }
-                    
-                    .initials {
-                        font-size: 2.5rem;
-                    }
-                    
-                    .tech-badge {
-                        padding: 6px 14px;
-                        font-size: 0.8rem;
-                    }
-                    
-                    .orbit-1 {
-                        width: 240px;
-                        height: 240px;
-                    }
-                    
-                    .orbit-2 {
-                        width: 280px;
-                        height: 280px;
-                    }
-                    
-                    .orbit-3 {
-                        width: 320px;
-                        height: 320px;
-                    }
-                }
-            `}</style>
-        </section>
-    );
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 };
 
 export default Hero;
