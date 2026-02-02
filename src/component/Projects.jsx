@@ -348,10 +348,9 @@ const Projects = () => {
                   <ProjectIcon icon={project.icon} projectIndex={index} />
                 </div>
                 <div className="project-title-section">
-                  <h3>
-                    <span className="project-title-text">{project.title}</span>
-                    {!isMobile && <span className="project-title-highlight">{project.title}</span>}
-                  </h3>
+               <h3 className="project-title" data-title={project.title}>
+  <span className="project-title-text">{project.title}</span>
+</h3>
                   <p className="project-subtitle">{project.subtitle}</p>
                   <div className={`project-type ${project.type}`}>
                     <span className="type-dot"></span>
@@ -1463,6 +1462,27 @@ const Projects = () => {
             color: #333 !important;
             transform: none !important;
           }
+            .project-title {
+  position: relative;
+  display: inline-block;
+}
+
+.project-title-text {
+  position: relative;
+  z-index: 2;
+  color: #1f2937;
+}
+
+.project-title::before {
+  content: attr(data-title);
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: var(--accent-color);
+  filter: blur(3px);
+  opacity: 0.4;
+  z-index: 1;
+}
         }
       `}</style>
     </section>
