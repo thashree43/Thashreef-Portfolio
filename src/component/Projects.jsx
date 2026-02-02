@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { 
@@ -25,11 +25,31 @@ import {
 gsap.registerPlugin(ScrollTrigger);
 
 const Projects = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+  
   const projectsRef = useRef(null);
   const titleRef = useRef(null);
   const projectCardsRef = useRef([]);
   const techTagsRef = useRef([]);
   const floatingElementsRef = useRef([]);
+
+  // Check screen size on mount and resize
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      const mobile = width < 768;
+      const tablet = width >= 768 && width < 1024;
+      
+      setIsMobile(mobile);
+      setIsTablet(tablet);
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   const projects = [
     {
@@ -45,13 +65,13 @@ const Projects = () => {
         'Real-time notification system',
         'Mobile-responsive UI achieving 95+ Lighthouse score'
       ],
-      live: '#',
-      frontend: '#',
-      backend: '#',
+      live: 'https://www.wavescation.com/', // Updated with actual link
+      frontend: 'https://github.com/thashree43/waves-global-frontend',
+      backend: 'https://github.com/thashree43/waves-global-backend',
       type: 'fullstack',
       icon: FaWaveSquare,
       accentColor: '#3b82f6',
-      particles: 8
+      particles: isMobile ? 4 : isTablet ? 6 : 8
     },
     {
       title: 'ECOGAS',
@@ -66,13 +86,13 @@ const Projects = () => {
         'AWS S3 for image storage',
         'CI/CD pipeline with GitHub Actions'
       ],
-      live: '#',
-      frontend: '#',
-      backend: '#',
+      live: 'https://ecogas-frontent.vercel.app/', // Updated with actual link
+      frontend: 'https://github.com/thashree43/ecogas-frontend',
+      backend: 'https://github.com/thashree43/ecogas-backend',
       type: 'fullstack',
       icon: FaLeaf,
       accentColor: '#10b981',
-      particles: 6
+      particles: isMobile ? 3 : isTablet ? 5 : 6
     },
     {
       title: 'ZENVOGUE',
@@ -87,12 +107,12 @@ const Projects = () => {
         'Deployed on AWS with Kubernetes',
         'Referral system implementation'
       ],
-      live: '#',
-      github: '#',
+      live: 'https://www.zenvogue.online/', // Updated with actual link
+      github: 'https://github.com/thashree43/zenvogue-ecommerce',
       type: 'backend',
       icon: FaShoppingCart,
       accentColor: '#8b5cf6',
-      particles: 7
+      particles: isMobile ? 3 : isTablet ? 5 : 7
     },
     {
       title: 'CHRONO',
@@ -107,13 +127,13 @@ const Projects = () => {
         'Multi-role business data management',
         'RESTful CRUD APIs'
       ],
-      live: '#',
-      frontend: '#',
-      backend: '#',
+      live: 'https://chrono-frontend.vercel.app/', // Updated with actual link
+      frontend: 'https://github.com/thashree43/chrono-frontend',
+      backend: 'https://github.com/thashree43/chrono-backend',
       type: 'fullstack',
       icon: FaWarehouse,
       accentColor: '#f59e0b',
-      particles: 5
+      particles: isMobile ? 2 : isTablet ? 4 : 5
     }
   ];
 
@@ -122,21 +142,23 @@ const Projects = () => {
       title: 'Netflix Clone',
       description: 'Streaming platform UI with Firebase Authentication and watchlist management.',
       tech: ['React.js', 'Tailwind CSS', 'Firebase', 'Firestore', 'Vite'],
-      live: '#',
-      github: '#',
+      live: 'https://netflix-clone-thashree.vercel.app', // Updated with actual link
+      github: 'https://github.com/thashree43/netflix-clone',
       icon: FaCode
     },
     {
       title: 'OLX Clone',
       description: 'Classified ads platform with Cloudinary image optimization and real-time database.',
       tech: ['React.js', 'Node.js', 'Firebase', 'Cloudinary', 'RTK Query'],
-      github: '#',
+      github: 'https://github.com/thashree43/olx-clone',
       icon: FaNetworkWired
     }
   ];
 
-  // GSAP Animations
+  // GSAP Animations - Disable some on mobile for performance
   useEffect(() => {
+    if (isMobile) return;
+
     const ctx = gsap.context(() => {
       // Title animation with glow effect
       gsap.from(titleRef.current, {
@@ -203,47 +225,53 @@ const Projects = () => {
       });
 
       // Continuous animations
-      gsap.to('.project-icon', {
-        rotation: 360,
-        duration: 20,
-        repeat: -1,
-        ease: "none"
-      });
+      if (!isMobile) {
+        gsap.to('.project-icon', {
+          rotation: 360,
+          duration: 20,
+          repeat: -1,
+          ease: "none"
+        });
 
-      // Particle animations for each project
-      projects.forEach((project, projectIndex) => {
-        for (let i = 0; i < project.particles; i++) {
-          gsap.to(`.particle-${projectIndex}-${i}`, {
-            x: 'random(-20, 20)',
-            y: 'random(-20, 20)',
-            duration: 'random(2, 4)',
-            repeat: -1,
-            yoyo: true,
-            ease: "sine.inOut"
-          });
-        }
-      });
+        // Particle animations for each project
+        projects.forEach((project, projectIndex) => {
+          for (let i = 0; i < project.particles; i++) {
+            gsap.to(`.particle-${projectIndex}-${i}`, {
+              x: 'random(-20, 20)',
+              y: 'random(-20, 20)',
+              duration: 'random(2, 4)',
+              repeat: -1,
+              yoyo: true,
+              ease: "sine.inOut"
+            });
+          }
+        });
+      }
 
     }, projectsRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [isMobile]);
 
   const ProjectIcon = ({ icon: Icon, projectIndex }) => {
     return (
       <div className="project-icon-wrapper" ref={el => floatingElementsRef.current[projectIndex] = el}>
-        <div className="icon-glow"></div>
+        {!isMobile && <div className="icon-glow"></div>}
         <Icon className="project-icon" />
-        <div className="icon-orbits">
-          <div className="orbit orbit-1"></div>
-          <div className="orbit orbit-2"></div>
-          <div className="orbit orbit-3"></div>
-        </div>
+        {!isMobile && (
+          <div className="icon-orbits">
+            <div className="orbit orbit-1"></div>
+            <div className="orbit orbit-2"></div>
+            <div className="orbit orbit-3"></div>
+          </div>
+        )}
       </div>
     );
   };
 
   const ProjectParticles = ({ count, projectIndex, accentColor }) => {
+    if (isMobile) return null;
+    
     return (
       <>
         {Array.from({ length: count }).map((_, i) => (
@@ -265,12 +293,14 @@ const Projects = () => {
     <section id="projects" className="projects" ref={projectsRef}>
       {/* Background Elements */}
       <div className="background-grid"></div>
-      <div className="floating-shapes">
-        <div className="shape shape-1"></div>
-        <div className="shape shape-2"></div>
-        <div className="shape shape-3"></div>
-        <div className="shape shape-4"></div>
-      </div>
+      {!isMobile && (
+        <div className="floating-shapes">
+          <div className="shape shape-1"></div>
+          <div className="shape shape-2"></div>
+          <div className="shape shape-3"></div>
+          <div className="shape shape-4"></div>
+        </div>
+      )}
 
       <div className="container">
         {/* Animated Title */}
@@ -278,15 +308,17 @@ const Projects = () => {
           <h2 className="section-title">
             <span className="title-text">Featured Projects</span>
             <div className="title-line">
-              <div className="line-glow"></div>
+              {!isMobile && <div className="line-glow"></div>}
             </div>
             <span className="title-sub">Innovative Solutions, Exceptional Results</span>
           </h2>
-          <div className="title-decoration">
-            <FaCode className="decoration-icon" />
-            <FaLayerGroup className="decoration-icon" />
-            <FaRocket className="decoration-icon" />
-          </div>
+          {!isMobile && (
+            <div className="title-decoration">
+              <FaCode className="decoration-icon" />
+              <FaLayerGroup className="decoration-icon" />
+              <FaRocket className="decoration-icon" />
+            </div>
+          )}
         </div>
 
         {/* Main Projects Grid */}
@@ -308,7 +340,7 @@ const Projects = () => {
               </div>
 
               {/* Card Glow Effect */}
-              <div className="card-glow"></div>
+              {!isMobile && <div className="card-glow"></div>}
 
               {/* Project Header */}
               <div className="project-header">
@@ -318,7 +350,7 @@ const Projects = () => {
                 <div className="project-title-section">
                   <h3>
                     <span className="project-title-text">{project.title}</span>
-                    <span className="project-title-highlight">{project.title}</span>
+                    {!isMobile && <span className="project-title-highlight">{project.title}</span>}
                   </h3>
                   <p className="project-subtitle">{project.subtitle}</p>
                   <div className={`project-type ${project.type}`}>
@@ -348,7 +380,7 @@ const Projects = () => {
                       <div className="feature-marker"></div>
                       <div className="feature-content">
                         <span className="feature-text">{feature}</span>
-                        <div className="feature-line"></div>
+                        {!isMobile && <div className="feature-line"></div>}
                       </div>
                     </li>
                   ))}
@@ -372,7 +404,7 @@ const Projects = () => {
                       }}
                     >
                       {tech}
-                      <div className="tag-glow"></div>
+                      {!isMobile && <div className="tag-glow"></div>}
                     </span>
                   ))}
                 </div>
@@ -381,31 +413,55 @@ const Projects = () => {
               {/* Project Links */}
               <div className="project-links">
                 {project.live && (
-                  <a href={project.live} target="_blank" rel="noopener noreferrer" className="project-link live-link">
+                  <a 
+                    href={project.live} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="project-link live-link"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      window.open(project.live, '_blank', 'noopener,noreferrer');
+                    }}
+                  >
                     <FaExternalLinkAlt />
                     <span>Live Demo</span>
-                    <div className="link-glow"></div>
+                    {!isMobile && <div className="link-glow"></div>}
                   </a>
                 )}
                 {project.frontend && (
-                  <a href={project.frontend} target="_blank" rel="noopener noreferrer" className="project-link frontend-link">
+                  <a 
+                    href={project.frontend} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="project-link frontend-link"
+                  >
                     <FaDesktop />
                     <span>Frontend</span>
-                    <div className="link-glow"></div>
+                    {!isMobile && <div className="link-glow"></div>}
                   </a>
                 )}
                 {project.backend && (
-                  <a href={project.backend} target="_blank" rel="noopener noreferrer" className="project-link backend-link">
+                  <a 
+                    href={project.backend} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="project-link backend-link"
+                  >
                     <FaServer />
                     <span>Backend</span>
-                    <div className="link-glow"></div>
+                    {!isMobile && <div className="link-glow"></div>}
                   </a>
                 )}
                 {project.github && (
-                  <a href={project.github} target="_blank" rel="noopener noreferrer" className="project-link github-link">
+                  <a 
+                    href={project.github} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="project-link github-link"
+                  >
                     <FaGithub />
                     <span>GitHub</span>
-                    <div className="link-glow"></div>
+                    {!isMobile && <div className="link-glow"></div>}
                   </a>
                 )}
               </div>
@@ -434,7 +490,7 @@ const Projects = () => {
               <div key={index} className="mini-project-card">
                 <div className="mini-project-icon">
                   <project.icon />
-                  <div className="mini-icon-glow"></div>
+                  {!isMobile && <div className="mini-icon-glow"></div>}
                 </div>
                 <div className="mini-project-content">
                   <h4>{project.title}</h4>
@@ -446,12 +502,26 @@ const Projects = () => {
                   </div>
                   <div className="mini-project-links">
                     {project.live && (
-                      <a href={project.live} target="_blank" rel="noopener noreferrer" className="mini-link">
+                      <a 
+                        href={project.live} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="mini-link"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          window.open(project.live, '_blank', 'noopener,noreferrer');
+                        }}
+                      >
                         <FaExternalLinkAlt />
                       </a>
                     )}
                     {project.github && (
-                      <a href={project.github} target="_blank" rel="noopener noreferrer" className="mini-link">
+                      <a 
+                        href={project.github} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="mini-link"
+                      >
                         <FaGithub />
                       </a>
                     )}
@@ -469,7 +539,9 @@ const Projects = () => {
           color: #1f2937;
           position: relative;
           overflow: hidden;
-          padding: 100px 0;
+          padding: 4rem 1rem;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .background-grid {
@@ -481,7 +553,7 @@ const Projects = () => {
           background-image: 
             linear-gradient(rgba(59, 130, 246, 0.02) 1px, transparent 1px),
             linear-gradient(90deg, rgba(59, 130, 246, 0.02) 1px, transparent 1px);
-          background-size: 50px 50px;
+          background-size: 30px 30px;
           opacity: 0.3;
           pointer-events: none;
         }
@@ -493,74 +565,30 @@ const Projects = () => {
           top: 0;
           left: 0;
           pointer-events: none;
-        }
-
-        .shape {
-          position: absolute;
-          border-radius: 50%;
-          background: radial-gradient(circle, var(--accent-color, rgba(59, 130, 246, 0.1)) 0%, transparent 70%);
-          filter: blur(40px);
-          opacity: 0.2;
-          animation: floatShape 20s ease-in-out infinite;
-        }
-
-        .shape-1 {
-          width: 300px;
-          height: 300px;
-          top: 10%;
-          left: 5%;
-          animation-delay: 0s;
-        }
-
-        .shape-2 {
-          width: 200px;
-          height: 200px;
-          top: 60%;
-          right: 10%;
-          animation-delay: 5s;
-        }
-
-        .shape-3 {
-          width: 150px;
-          height: 150px;
-          bottom: 20%;
-          left: 15%;
-          animation-delay: 10s;
-        }
-
-        .shape-4 {
-          width: 250px;
-          height: 250px;
-          top: 30%;
-          right: 20%;
-          animation-delay: 15s;
-        }
-
-        @keyframes floatShape {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          25% { transform: translate(100px, 50px) scale(1.1); }
-          50% { transform: translate(50px, -50px) scale(0.9); }
-          75% { transform: translate(-50px, 50px) scale(1.05); }
+          display: none;
         }
 
         .container {
-          max-width: 1200px;
+          max-width: 1280px;
           margin: 0 auto;
-          padding: 0 20px;
+          padding: 0 1rem;
           position: relative;
           z-index: 2;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         /* Title Section */
         .title-section {
           text-align: center;
-          margin-bottom: 80px;
+          margin-bottom: 3rem;
+          width: 100%;
         }
 
         .section-title {
-          font-size: 4rem;
+          font-size: 2.2rem;
           font-weight: 800;
-          margin-bottom: 20px;
+          margin-bottom: 1rem;
           position: relative;
           display: inline-block;
         }
@@ -576,119 +604,57 @@ const Projects = () => {
         }
 
         .title-line {
-          width: 200px;
-          height: 4px;
+          width: 120px;
+          height: 3px;
           background: linear-gradient(90deg, transparent, #3b82f6, transparent);
-          margin: 20px auto;
+          margin: 1rem auto;
           border-radius: 2px;
           position: relative;
           overflow: hidden;
         }
 
-        .line-glow {
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.5), transparent);
-          animation: shine 3s infinite;
-        }
-
-        @keyframes shine {
-          0% { left: -100%; }
-          100% { left: 100%; }
-        }
-
         .title-sub {
           display: block;
           color: #6b7280;
-          font-size: 1.2rem;
+          font-size: 1rem;
           font-weight: 400;
-          margin-top: 15px;
-          letter-spacing: 2px;
+          margin-top: 0.5rem;
           text-transform: uppercase;
-        }
-
-        .title-decoration {
-          display: flex;
-          justify-content: center;
-          gap: 30px;
-          margin-top: 30px;
-        }
-
-        .decoration-icon {
-          color: #3b82f6;
-          font-size: 2rem;
-          opacity: 0.5;
-          animation: bounce 2s ease-in-out infinite;
-        }
-
-        .decoration-icon:nth-child(2) {
-          animation-delay: 0.5s;
-        }
-
-        .decoration-icon:nth-child(3) {
-          animation-delay: 1s;
-        }
-
-        @keyframes bounce {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
         }
 
         /* Projects Grid */
         .projects-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-          gap: 40px;
-          margin-bottom: 80px;
-        }
-
-        @media (max-width: 1100px) {
-          .projects-grid {
-            grid-template-columns: 1fr;
-          }
+          display: flex;
+          flex-direction: column;
+          gap: 2rem;
+          margin-bottom: 3rem;
+          width: 100%;
         }
 
         /* Project Card */
         .project-card {
           background: white;
-          padding: 40px;
-          border-radius: 25px;
-          backdrop-filter: blur(20px);
+          padding: 1.5rem;
+          border-radius: 16px;
           border: 1px solid rgba(209, 213, 219, 0.6);
           position: relative;
           overflow: hidden;
-          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-          box-shadow: 
-            0 4px 6px -1px rgba(0, 0, 0, 0.05),
-            0 2px 4px -1px rgba(0, 0, 0, 0.03);
+          transition: all 0.3s ease;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .project-card:hover {
-          transform: translateY(-15px) scale(1.02);
-          box-shadow: 
-            0 20px 40px rgba(0, 0, 0, 0.1),
-            0 0 100px rgba(59, 130, 246, 0.1),
-            inset 0 1px 0 rgba(255, 255, 255, 0.1);
-          border-color: var(--accent-color, rgba(59, 130, 246, 0.3));
-        }
-
-        .particles-container {
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          top: 0;
-          left: 0;
-          pointer-events: none;
-          overflow: hidden;
+          transform: translateY(-8px);
+          border-color: var(--accent-color);
+          box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
         }
 
         .project-particle {
           position: absolute;
-          width: 4px;
-          height: 4px;
+          width: 3px;
+          height: 3px;
           background: var(--particle-color);
           border-radius: 50%;
           opacity: 0.4;
@@ -701,34 +667,19 @@ const Projects = () => {
           50% { transform: translate(10px, -10px); opacity: 0.2; }
         }
 
-        .card-glow {
-          position: absolute;
-          top: -100px;
-          left: -100px;
-          right: -100px;
-          bottom: -100px;
-          background: radial-gradient(circle at center, var(--accent-color, rgba(59, 130, 246, 0.1)) 0%, transparent 70%);
-          opacity: 0;
-          transition: opacity 0.3s ease;
-          pointer-events: none;
-          filter: blur(60px);
-        }
-
-        .project-card:hover .card-glow {
-          opacity: 0.2;
-        }
-
         /* Project Header */
         .project-header {
           display: flex;
+          flex-direction: column;
           align-items: center;
-          gap: 25px;
-          margin-bottom: 30px;
+          gap: 1rem;
+          margin-bottom: 1.5rem;
+          text-align: center;
         }
 
         .project-icon-wrapper {
-          width: 80px;
-          height: 80px;
+          width: 4rem;
+          height: 4rem;
           position: relative;
           display: flex;
           align-items: center;
@@ -742,67 +693,26 @@ const Projects = () => {
           background: var(--accent-color);
           border-radius: 50%;
           opacity: 0.1;
-          filter: blur(20px);
+          filter: blur(10px);
         }
 
         .project-icon {
-          font-size: 2.5rem;
+          font-size: 1.8rem;
           color: var(--accent-color);
           position: relative;
           z-index: 2;
         }
 
-        .icon-orbits {
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          top: 0;
-          left: 0;
-        }
-
-        .orbit {
-          position: absolute;
-          border: 1px solid var(--accent-color);
-          border-radius: 50%;
-          opacity: 0.1;
-        }
-
-        .orbit-1 {
-          width: 100%;
-          height: 100%;
-          animation: rotate 10s linear infinite;
-        }
-
-        .orbit-2 {
-          width: 120%;
-          height: 120%;
-          top: -10%;
-          left: -10%;
-          animation: rotate 15s linear infinite reverse;
-        }
-
-        .orbit-3 {
-          width: 140%;
-          height: 140%;
-          top: -20%;
-          left: -20%;
-          animation: rotate 20s linear infinite;
-        }
-
-        @keyframes rotate {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-
         .project-title-section {
           flex: 1;
+          width: 100%;
         }
 
         .project-title-section h3 {
           position: relative;
           display: inline-block;
-          margin: 0 0 10px 0;
-          font-size: 1.8rem;
+          margin: 0 0 0.5rem 0;
+          font-size: 1.4rem;
         }
 
         .project-title-text {
@@ -811,42 +721,29 @@ const Projects = () => {
           z-index: 2;
         }
 
-        .project-title-highlight {
-          position: absolute;
-          top: 0;
-          left: 0;
-          color: transparent;
-          background: linear-gradient(45deg, var(--accent-color), transparent);
-          -webkit-background-clip: text;
-          background-clip: text;
-          z-index: 1;
-          filter: blur(5px);
-          opacity: 0.3;
-        }
-
         .project-subtitle {
           color: var(--accent-color);
           font-weight: 500;
-          margin: 0 0 15px 0;
-          font-size: 1.1rem;
+          margin: 0 0 0.8rem 0;
+          font-size: 1rem;
         }
 
         .project-type {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          padding: 6px 15px;
+          gap: 0.5rem;
+          padding: 0.4rem 1rem;
           background: rgba(59, 130, 246, 0.05);
           border-radius: 20px;
-          font-size: 0.85rem;
+          font-size: 0.8rem;
           font-weight: 600;
           border: 1px solid rgba(59, 130, 246, 0.1);
           color: #3b82f6;
         }
 
         .type-dot {
-          width: 8px;
-          height: 8px;
+          width: 6px;
+          height: 6px;
           background: var(--accent-color);
           border-radius: 50%;
           animation: pulseDot 2s infinite;
@@ -860,48 +757,50 @@ const Projects = () => {
         /* Project Description */
         .project-description-wrapper {
           display: flex;
-          gap: 15px;
-          margin-bottom: 30px;
+          gap: 1rem;
+          margin-bottom: 1.5rem;
           background: rgba(59, 130, 246, 0.03);
-          padding: 20px;
-          border-radius: 15px;
+          padding: 1.2rem;
+          border-radius: 12px;
           border-left: 3px solid var(--accent-color);
         }
 
         .description-icon {
           color: var(--accent-color);
-          font-size: 1.2rem;
+          font-size: 1rem;
           margin-top: 2px;
+          flex-shrink: 0;
         }
 
         .project-description {
           color: #6b7280;
-          line-height: 1.7;
+          line-height: 1.6;
           margin: 0;
           flex: 1;
+          font-size: 0.9rem;
         }
 
         /* Features */
         .project-features {
-          margin-bottom: 30px;
+          margin-bottom: 1.5rem;
         }
 
         .features-header {
           display: flex;
           align-items: center;
-          gap: 10px;
-          margin-bottom: 20px;
+          gap: 0.8rem;
+          margin-bottom: 1rem;
         }
 
         .features-icon {
           color: var(--accent-color);
-          font-size: 1.2rem;
+          font-size: 1rem;
         }
 
         .features-header h4 {
           color: #1f2937;
           margin: 0;
-          font-size: 1.2rem;
+          font-size: 1.1rem;
         }
 
         .features-list {
@@ -912,8 +811,8 @@ const Projects = () => {
 
         .feature-item {
           display: flex;
-          gap: 15px;
-          padding: 12px 0;
+          gap: 0.8rem;
+          padding: 0.8rem 0;
           border-bottom: 1px solid rgba(209, 213, 219, 0.5);
         }
 
@@ -922,11 +821,11 @@ const Projects = () => {
         }
 
         .feature-marker {
-          width: 6px;
-          height: 6px;
+          width: 5px;
+          height: 5px;
           background: var(--accent-color);
           border-radius: 50%;
-          margin-top: 8px;
+          margin-top: 6px;
           flex-shrink: 0;
         }
 
@@ -937,60 +836,46 @@ const Projects = () => {
 
         .feature-text {
           color: #4b5563;
-          font-size: 0.95rem;
+          font-size: 0.85rem;
           line-height: 1.5;
           display: block;
         }
 
-        .feature-line {
-          position: absolute;
-          bottom: -12px;
-          left: 0;
-          width: 0;
-          height: 1px;
-          background: linear-gradient(90deg, var(--accent-color), transparent);
-          transition: width 0.3s ease;
-        }
-
-        .feature-item:hover .feature-line {
-          width: 100%;
-        }
-
         /* Tech Stack */
         .project-tech {
-          margin-bottom: 30px;
+          margin-bottom: 1.5rem;
         }
 
         .tech-header {
           display: flex;
           align-items: center;
-          gap: 10px;
-          margin-bottom: 15px;
+          gap: 0.8rem;
+          margin-bottom: 1rem;
         }
 
         .tech-icon {
           color: var(--accent-color);
-          font-size: 1.2rem;
+          font-size: 1rem;
         }
 
         .tech-header h5 {
           color: #1f2937;
           margin: 0;
-          font-size: 1.1rem;
+          font-size: 1rem;
         }
 
         .tech-tags-container {
           display: flex;
           flex-wrap: wrap;
-          gap: 10px;
+          gap: 0.5rem;
         }
 
         .tech-tag {
-          padding: 8px 16px;
+          padding: 0.5rem 1rem;
           background: rgba(59, 130, 246, 0.05);
           color: #4b5563;
-          border-radius: 20px;
-          font-size: 0.85rem;
+          border-radius: 16px;
+          font-size: 0.8rem;
           font-weight: 500;
           border: 1px solid rgba(59, 130, 246, 0.1);
           position: relative;
@@ -1002,82 +887,52 @@ const Projects = () => {
         .tech-tag:hover {
           background: rgba(59, 130, 246, 0.1);
           color: #1f2937;
-          transform: translateY(-3px);
-          border-color: var(--accent-color);
-        }
-
-        .tag-glow {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(45deg, var(--accent-color), transparent);
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        }
-
-        .tech-tag:hover .tag-glow {
-          opacity: 0.1;
+          transform: translateY(-2px);
         }
 
         /* Project Links */
         .project-links {
           display: flex;
-          gap: 15px;
-          flex-wrap: wrap;
+          flex-direction: column;
+          gap: 0.8rem;
         }
 
         .project-link {
           display: inline-flex;
           align-items: center;
-          gap: 10px;
-          padding: 12px 24px;
+          gap: 0.8rem;
+          padding: 0.8rem 1.2rem;
           background: rgba(59, 130, 246, 0.05);
           color: #4b5563;
           text-decoration: none;
-          border-radius: 12px;
+          border-radius: 10px;
           font-weight: 500;
           border: 1px solid rgba(59, 130, 246, 0.1);
           transition: all 0.3s ease;
           position: relative;
           overflow: hidden;
-          flex: 1;
           justify-content: center;
-          min-width: 140px;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .project-link:hover {
           background: var(--accent-color);
           color: white;
-          transform: translateY(-5px);
-          box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .link-glow {
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-          transition: left 0.6s ease;
-        }
-
-        .project-link:hover .link-glow {
-          left: 100%;
+          transform: translateY(-3px);
+          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
         }
 
         /* Mini Projects Section */
         .mini-projects-section {
-          margin-top: 80px;
+          margin-top: 3rem;
         }
 
         .section-divider {
           display: flex;
           align-items: center;
-          gap: 20px;
-          margin-bottom: 50px;
+          gap: 1rem;
+          margin-bottom: 2rem;
         }
 
         .divider-line {
@@ -1088,19 +943,18 @@ const Projects = () => {
 
         .divider-icon {
           color: #3b82f6;
-          font-size: 1.5rem;
-          animation: spin 4s linear infinite;
+          font-size: 1.2rem;
         }
 
         .mini-projects-header {
           text-align: center;
-          margin-bottom: 40px;
+          margin-bottom: 2rem;
         }
 
         .section-subtitle {
-          font-size: 2.5rem;
+          font-size: 1.6rem;
           font-weight: 700;
-          margin: 0 0 15px 0;
+          margin: 0 0 0.8rem 0;
           display: inline-block;
         }
 
@@ -1112,114 +966,109 @@ const Projects = () => {
         }
 
         .subtitle-underline {
-          width: 100px;
+          width: 60px;
           height: 3px;
           background: linear-gradient(90deg, #3b82f6, transparent);
-          margin: 10px auto 0;
+          margin: 0.5rem auto 0;
           border-radius: 2px;
         }
 
         .section-description {
           color: #6b7280;
-          font-size: 1.1rem;
-          max-width: 600px;
+          font-size: 0.9rem;
+          max-width: 100%;
           margin: 0 auto;
         }
 
         .mini-projects-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-          gap: 30px;
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
         }
 
         .mini-project-card {
           background: white;
-          padding: 30px;
-          border-radius: 20px;
-          backdrop-filter: blur(10px);
+          padding: 1.5rem;
+          border-radius: 12px;
           border: 1px solid rgba(209, 213, 219, 0.6);
           display: flex;
-          gap: 25px;
-          align-items: flex-start;
+          flex-direction: column;
+          gap: 1.2rem;
+          align-items: center;
+          text-align: center;
           transition: all 0.3s ease;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .mini-project-card:hover {
-          transform: translateY(-10px);
+          transform: translateY(-5px);
           border-color: #3b82f6;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
         }
 
         .mini-project-icon {
-          width: 60px;
-          height: 60px;
+          width: 3rem;
+          height: 3rem;
           background: rgba(59, 130, 246, 0.1);
-          border-radius: 15px;
+          border-radius: 10px;
           display: flex;
           align-items: center;
           justify-content: center;
           color: #3b82f6;
-          font-size: 1.5rem;
+          font-size: 1.2rem;
           position: relative;
-          flex-shrink: 0;
-        }
-
-        .mini-icon-glow {
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          background: #3b82f6;
-          border-radius: 15px;
-          opacity: 0.1;
-          filter: blur(10px);
         }
 
         .mini-project-content {
           flex: 1;
+          width: 100%;
         }
 
         .mini-project-content h4 {
           color: #1f2937;
-          margin: 0 0 10px 0;
-          font-size: 1.3rem;
+          margin: 0 0 0.5rem 0;
+          font-size: 1.1rem;
         }
 
         .mini-project-content p {
           color: #6b7280;
-          font-size: 0.95rem;
-          line-height: 1.6;
-          margin: 0 0 15px 0;
+          font-size: 0.85rem;
+          line-height: 1.5;
+          margin: 0 0 1rem 0;
         }
 
         .mini-project-tech {
           display: flex;
           flex-wrap: wrap;
-          gap: 8px;
-          margin: 15px 0;
+          gap: 0.5rem;
+          justify-content: center;
+          margin: 0.8rem 0;
         }
 
         .mini-tech-tag {
-          padding: 6px 12px;
+          padding: 0.4rem 0.8rem;
           background: rgba(59, 130, 246, 0.05);
           color: #4b5563;
-          border-radius: 15px;
-          font-size: 0.8rem;
+          border-radius: 12px;
+          font-size: 0.75rem;
           border: 1px solid rgba(59, 130, 246, 0.1);
         }
 
         .mini-project-links {
           display: flex;
-          gap: 15px;
-          margin-top: 20px;
+          gap: 1rem;
+          justify-content: center;
+          margin-top: 1rem;
         }
 
         .mini-link {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 40px;
-          height: 40px;
+          width: 2.5rem;
+          height: 2.5rem;
           background: rgba(59, 130, 246, 0.05);
           border-radius: 50%;
           color: #4b5563;
@@ -1234,67 +1083,385 @@ const Projects = () => {
           transform: scale(1.1);
         }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
+        /* Tablet Styles (768px and up) */
+        @media (min-width: 768px) {
           .projects {
-            padding: 60px 0;
+            padding: 5rem 2rem;
+          }
+
+          .floating-shapes {
+            display: block;
+          }
+
+          .shape {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--accent-color, rgba(59, 130, 246, 0.1)) 0%, transparent 70%);
+            filter: blur(40px);
+            opacity: 0.2;
+            animation: floatShape 20s ease-in-out infinite;
+          }
+
+          .shape-1 {
+            width: 200px;
+            height: 200px;
+            top: 10%;
+            left: 5%;
+            animation-delay: 0s;
+          }
+
+          .shape-2 {
+            width: 150px;
+            height: 150px;
+            top: 60%;
+            right: 10%;
+            animation-delay: 5s;
+          }
+
+          .shape-3 {
+            width: 120px;
+            height: 120px;
+            bottom: 20%;
+            left: 15%;
+            animation-delay: 10s;
+          }
+
+          .shape-4 {
+            width: 180px;
+            height: 180px;
+            top: 30%;
+            right: 20%;
+            animation-delay: 15s;
+          }
+
+          @keyframes floatShape {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(60px, 30px) scale(1.1); }
+            50% { transform: translate(30px, -30px) scale(0.9); }
+            75% { transform: translate(-30px, 30px) scale(1.05); }
           }
 
           .section-title {
-            font-size: 2.5rem;
+            font-size: 3rem;
+          }
+
+          .title-line {
+            width: 150px;
+            height: 4px;
+          }
+
+          .title-sub {
+            font-size: 1.1rem;
+          }
+
+          .title-decoration {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+          }
+
+          .decoration-icon {
+            color: #3b82f6;
+            font-size: 1.5rem;
+            opacity: 0.5;
+            animation: bounce 2s ease-in-out infinite;
           }
 
           .projects-grid {
-            grid-template-columns: 1fr;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
           }
 
           .project-card {
-            padding: 30px;
+            padding: 2rem;
           }
 
           .project-header {
-            flex-direction: column;
-            text-align: center;
-            gap: 20px;
+            flex-direction: row;
+            text-align: left;
+            align-items: flex-start;
+          }
+
+          .project-title-section {
+            width: auto;
           }
 
           .project-links {
-            flex-direction: column;
+            flex-direction: row;
+            flex-wrap: wrap;
+          }
+
+          .project-link {
+            width: auto;
+            flex: 1;
+            min-width: 120px;
           }
 
           .mini-projects-grid {
-            grid-template-columns: 1fr;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
           }
 
           .mini-project-card {
-            flex-direction: column;
-            text-align: center;
+            flex-direction: row;
+            text-align: left;
+            align-items: flex-start;
           }
 
           .mini-project-icon {
-            margin: 0 auto;
+            margin: 0;
+          }
+
+          .mini-project-tech {
+            justify-content: flex-start;
+          }
+
+          .mini-project-links {
+            justify-content: flex-start;
           }
         }
 
-        @media (max-width: 480px) {
-          .section-title {
-            font-size: 2rem;
+        /* Desktop Styles (1024px and up) */
+        @media (min-width: 1024px) {
+          .projects {
+            padding: 6rem 2rem;
           }
 
-          .section-subtitle {
-            font-size: 1.8rem;
+          .section-title {
+            font-size: 3.5rem;
+          }
+
+          .projects-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2.5rem;
           }
 
           .project-card {
-            padding: 20px;
+            padding: 2.5rem;
           }
 
-          .tech-tags-container {
-            justify-content: center;
+          .project-title-section h3 {
+            font-size: 1.6rem;
           }
 
-          .project-links {
-            flex-direction: column;
+          .project-description {
+            font-size: 1rem;
+          }
+
+          .feature-text {
+            font-size: 0.9rem;
+          }
+
+          .tech-tag {
+            font-size: 0.85rem;
+            padding: 0.6rem 1.2rem;
+          }
+
+          .project-link {
+            padding: 1rem 1.5rem;
+            font-size: 0.95rem;
+          }
+
+          .section-subtitle {
+            font-size: 2rem;
+          }
+
+          .section-description {
+            font-size: 1rem;
+          }
+
+          .shape-1 {
+            width: 300px;
+            height: 300px;
+          }
+
+          .shape-2 {
+            width: 200px;
+            height: 200px;
+          }
+
+          .shape-3 {
+            width: 150px;
+            height: 150px;
+          }
+
+          .shape-4 {
+            width: 250px;
+            height: 250px;
+          }
+        }
+
+        /* Large Desktop Styles (1200px and up) */
+        @media (min-width: 1200px) {
+          .projects {
+            padding: 8rem 2rem;
+          }
+
+          .section-title {
+            font-size: 4rem;
+          }
+
+          .title-line {
+            width: 200px;
+          }
+
+          .projects-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 3rem;
+          }
+
+          .project-card {
+            padding: 3rem;
+          }
+
+          .project-title-section h3 {
+            font-size: 1.8rem;
+          }
+
+          .project-description {
+            font-size: 1.05rem;
+          }
+
+          .feature-text {
+            font-size: 0.95rem;
+          }
+        }
+
+        /* Small Mobile Devices (480px and below) */
+        @media (max-width: 480px) {
+          .projects {
+            padding: 3rem 1rem;
+          }
+
+          .section-title {
+            font-size: 1.8rem;
+          }
+
+          .title-sub {
+            font-size: 0.9rem;
+          }
+
+          .project-card {
+            padding: 1.2rem;
+          }
+
+          .project-title-section h3 {
+            font-size: 1.2rem;
+          }
+
+          .project-subtitle {
+            font-size: 0.9rem;
+          }
+
+          .project-description {
+            font-size: 0.85rem;
+          }
+
+          .features-header h4 {
+            font-size: 1rem;
+          }
+
+          .feature-text {
+            font-size: 0.8rem;
+          }
+
+          .tech-tag {
+            font-size: 0.75rem;
+            padding: 0.4rem 0.8rem;
+          }
+
+          .project-link {
+            padding: 0.7rem 1rem;
+            font-size: 0.85rem;
+          }
+
+          .section-subtitle {
+            font-size: 1.4rem;
+          }
+
+          .section-description {
+            font-size: 0.85rem;
+          }
+        }
+
+        /* Landscape Mode */
+        @media (max-height: 600px) and (orientation: landscape) {
+          .projects {
+            padding: 3rem 1rem;
+          }
+
+          .projects-grid {
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+          }
+
+          .project-card {
+            padding: 1.5rem;
+          }
+
+          .mini-projects-section {
+            margin-top: 2rem;
+          }
+        }
+
+        /* High DPI Screens */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+          .project-particle {
+            width: 2px;
+            height: 2px;
+          }
+        }
+
+        /* Print Styles */
+        @media print {
+          .projects {
+            background: white !important;
+            padding: 2rem 1rem !important;
+          }
+
+          .background-grid,
+          .floating-shapes,
+          .icon-glow,
+          .card-glow,
+          .tag-glow,
+          .link-glow,
+          .mini-icon-glow,
+          .feature-line {
+            display: none !important;
+          }
+
+          .project-card {
+            break-inside: avoid;
+            border: 2px solid #ddd !important;
+            box-shadow: none !important;
+          }
+
+          .project-card:hover {
+            transform: none !important;
+            border-color: #ddd !important;
+          }
+
+          .title-text,
+          .section-subtitle span {
+            -webkit-text-fill-color: #333 !important;
+            color: #333 !important;
+          }
+
+          .project-link,
+          .mini-link {
+            border: 1px solid #333 !important;
+            color: #333 !important;
+            text-decoration: underline;
+          }
+
+          .project-link:hover,
+          .mini-link:hover {
+            background: transparent !important;
+            color: #333 !important;
+            transform: none !important;
           }
         }
       `}</style>
